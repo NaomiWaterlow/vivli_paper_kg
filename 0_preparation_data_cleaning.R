@@ -128,9 +128,8 @@ sidero$Cefepime<- as.character(sidero$Cefepime) # make characters to harmonise f
 
 # Pivot longer to explore ranges in MIC
 sidero_clean <- sidero %>% pivot_longer(cols = `Cefiderocol`:`Imipenem/ Relebactam`, values_to = "mic", names_to = "antibiotic") %>% 
-  filter(!is.na(mic), !mic == "NULL") %>% mutate(data = "sdro", age = 1000, gender = "m") # add mock data for age and gender 
+  filter(!is.na(mic), !mic == "NULL") %>% mutate(data = "sdro", age = NA, gender = NA) # add mock data for age and gender 
 
-unique(sidero_clean$mic)
 colnames(sidero_clean) <- tolower(colnames(sidero_clean))
 sidero_clean <- rename(sidero_clean, "source" = "body location")
 sidero_clean <- rename(sidero_clean, "year" = "year collected")
@@ -170,12 +169,16 @@ col_use <- c("age","gender","source","year", "country","organism","antibiotic","
 
 ########## Combine the datasets ########
 full_data <- rbind(atlas_clean[,col_use],gsk_clean[,col_use], 
-      vena_clean[,col_use],oma_clean[,col_use], sidero_clean[,col_use]) %>% 
-  filter(!is.na(mic), !is.na(age), !is.na(gender), !gender == "N") %>% 
-  mutate(organism_clean = "")
+       vena_clean[,col_use],oma_clean[,col_use], sidero_clean[,col_use]) %>% 
+   filter(!is.na(mic), !is.na(age), !is.na(gender), !gender == "N") %>% 
+   mutate(organism_clean = "")
 
 dim(full_data) # 24,523,575   
 
+w_missing_data <- as.data.table(rbind(atlas_clean[,col_use],gsk_clean[,col_use], 
+                   vena_clean[,col_use],oma_clean[,col_use]) )
+nrow(w_missing_data[is.na(age)])/nrow(w_missing_data) *100
+nrow(w_missing_data[is.na(gender)])/nrow(w_missing_data) *100
 
 # Clean gender
 unique(full_data$gender)
@@ -381,3 +384,17 @@ age_props/ sum(age_props)
 year_props <- table(temp$year)
 year_props/ sum(year_props)*100
 
+
+props_plot <- table(temp[,c("age_group", "gender")])
+props_plot <- data.table(props_plot)
+props_plot$age_group <- factor(props_plot$age_group, levels = c(
+  "0 to 2 Years", "3 to 12 Years", "13 to 18 Years", "19 to 64 Years", 
+  "65 to 84 Years", "85 and Over"
+)) 
+
+props_plot$width <- rep(c(2,10,6, 45,20,15),2)
+
+ggplot(props_plot, aes(x = age_group, y = N/width, fill = gender)) + 
+  geom_bar(stat="identity", position = "dodge") + 
+  labs(x = "Age group", y = "Number of samples by age-year", fill = "Sex") + 
+  theme_linedraw() 
