@@ -1,4 +1,4 @@
-##### MICAG Tool for screening and plotting MIC tools by sub_group
+##### MICAG screening and plotting MIC tools by sub_group
 # WITH YEAR
 library(data.table);library(ggplot2);library(cowplot)
 
@@ -7,7 +7,7 @@ library(data.table);library(ggplot2);library(cowplot)
 full_data <- as.data.table(read.csv("data/full_data.csv"))
 
 # specify which bugs are of interest
-bacteria_to_use <- c("Staphylococcus aureus", "Escherichia coli", "Klebsiella pneumoniae", "Pseudomonas aeruginosa")
+bacteria_to_use <- unique(full_data$key_organism) 
 
 ######*********************** SPECIFY ************************#################
 ## What characteristic to look at. (Note: Must match column name)
