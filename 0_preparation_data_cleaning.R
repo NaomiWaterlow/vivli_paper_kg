@@ -4,7 +4,8 @@
 # to use the tool for other data, own prep of data must be done
 
 ## Libraries
-library(tidyverse); library(readxl); library(data.table)
+library(tidyverse); library(readxl); library(data.table); library(patchwork)
+theme_set(theme_bw(base_size = 11))
 
 ## Read in data 
 # Data inputs need to be in file called "data"
@@ -47,7 +48,7 @@ atlas_clean <- rename(atlas_clean, "age" = "age group")
 dream <- readxl::read_excel("data/BEDAQUILINE DREAM DATASET FOR VIVLI - 06-06-2022.xlsx")
 colnames(dream) # has MIC data and country, specimen metadata but not age / gender
 dim(dream) # 5928
-table(dream$Specimen) # vast majority (89%) sputum so would be hard to do sub analysis 
+table(dream$Specimen)# vast majority (89%) sputum so would be hard to do sub analysis 
 table(dream$SubType) # Resistance classification
 ## Due to lack of sub groupings EXCLUDE
 
@@ -115,6 +116,7 @@ head(sidero)
 dim(sidero) # big: 47615 
 table(sidero$Country) # Global
 table(sidero$`Organism Name`) # lots
+## EXCLUDE as no age and sex
 
 ### Explore antibiotic data 
 unique(sidero$Cefiderocol)
@@ -163,33 +165,44 @@ unique(vena_clean$mic)
 colnames(vena_clean) <- tolower(colnames(vena_clean))
 vena_clean <- rename(vena_clean, "source" = "bodysite")
 
-
+#####******************* Combine ******************#################
 #### Combine data: only explore age / gender / country / body location 
 col_use <- c("age","gender","source","year", "country","organism","antibiotic","mic","data")
 
-########## Combine the datasets ########
+########## Combine the datasets that have age and sex ########
 full_data <- rbind(atlas_clean[,col_use],gsk_clean[,col_use], 
-       vena_clean[,col_use],oma_clean[,col_use], sidero_clean[,col_use]) %>% 
-   filter(!is.na(mic), !is.na(age), !is.na(gender), !gender == "N") %>% 
-   mutate(organism_clean = "")
+                   vena_clean[,col_use],oma_clean[,col_use]) %>% 
+  filter(!is.na(mic), !is.na(age), !is.na(gender), !gender == "N", !age == "Unknown") %>% 
+  mutate(organism_clean = "")
 
-dim(full_data) # 24,523,575   
-
+###### Missing data 
 w_missing_data <- as.data.table(rbind(atlas_clean[,col_use],gsk_clean[,col_use], 
-                   vena_clean[,col_use],oma_clean[,col_use]) )
-nrow(w_missing_data[is.na(age)])/nrow(w_missing_data) *100
+                                      vena_clean[,col_use],oma_clean[,col_use]) )
+nrow(w_missing_data[is.na(age)]) + nrow(w_missing_data[age == "Unknown"]) # 324192 + 83 missing age 
+(nrow(w_missing_data[is.na(age)]) + nrow(w_missing_data[age == "Unknown"]))/nrow(w_missing_data) *100 # 1.3% 
+nrow(w_missing_data[is.na(gender)]) # 248583 missing gender 
 nrow(w_missing_data[is.na(gender)])/nrow(w_missing_data) *100
+nrow(w_missing_data[is.na(mic)]) # 0 missing mic
+nrow(w_missing_data[is.na(mic)])/nrow(w_missing_data) *100
+nrow(w_missing_data[gender == "N"]) # 1180 has gender as an N
+nrow(w_missing_data[gender == "N"])/nrow(w_missing_data) *100
 
-# Clean gender
+# 1% of data excluded by cleaning for mic / age / gender
+nrow(w_missing_data) # 24,385,403 # All data
+dim(full_data) # 24,135,557 # Cleaned for missing data 
+100 * (dim(w_missing_data)[1] - dim(full_data)[1])/dim(w_missing_data)[1]
+
+######## Clean columns 
+### Clean gender to "m" and "f"
 unique(full_data$gender)
 full_data$gender <- tolower(full_data$gender)
 full_data$gender <- substr(full_data$gender, 1, 1)     
 unique(full_data$gender)
 
-# Clean year: no need
+### Clean year: no need
 unique(full_data$year)
 
-# Clean mic
+### Clean mic
 unique(full_data$mic)
 full_data$mic <- gsub('<', '', full_data$mic)
 full_data$mic <- gsub('>', '', full_data$mic)
@@ -197,50 +210,55 @@ full_data$mic <- gsub('=', '', full_data$mic)
 full_data$mic <- gsub('≤', '', full_data$mic)
 full_data$mic <- gsub('<=', '', full_data$mic)
 unique(full_data$mic)
-# still many alphanumeric: as convert to as.numeric and then filter out NAs this should work? 
+# still many alphanumeric: as convert to as.numeric and then filter out NAs 
 suppressWarnings(full_data$mic <- as.numeric(full_data$mic))
-# suppressing warning as expect NAs!
+# suppressing warning as expect NAs
 full_data_cl <- full_data %>% filter(!is.na(mic)) 
-100*dim(full_data_cl)[1] / dim(full_data)[1] # 45% of rows removed by filtering for numeric MIC
 
-full_data <- full_data_cl
+# Alot removed by this - many "MIC" values are presence of genes
+100*dim(full_data_cl)[1] / dim(full_data)[1] # 55% => 45% of rows removed by filtering for numeric MIC
 
-#### Clean organism for 4 top bugs for now
+full_data <- full_data_cl 
+dim(full_data) #13,318,750
+
+### Clean organism for 4 top bugs for now
+length(unique(full_data$organism))
+
 u <- unique(full_data$organism)
 table(full_data$organism) %>% as.data.frame() %>% 
   arrange(desc(Freq)) 
-## 4 have > 1.4M. Rest <<< 750K. 
+401 - 122 # number < 1000 results
 
+## 4 have > 1.4M. Rest <<< 750K. 
 
 # S. aureus
 u[str_which(u, "aureus")] # yes
 u[str_which(u, "Staph")] # too many: think above captures it 
-full_data[which(full_data$organism == u[str_which(u, "aureus")]),"organism_clean"] <- "Staphylococcus aureus"
+full_data[which(full_data$organism %in% u[str_which(u, "aureus")]),"organism_clean"] <- "Staphylococcus aureus"
 
 # E coli 
 u[str_which(u, "coli")] # no too many others 
 u[str_which(u, "E coli")] # none
 u[str_which(u, "E. coli")] # none
 u[str_which(u, "Escherichia")] # too many
-full_data[which(full_data$organism == u[str_which(u, "Escherichia coli")]),"organism_clean"] <- "Escherichia coli"
+full_data[which(full_data$organism %in% u[str_which(u, "Escherichia coli")]),"organism_clean"] <- "Escherichia coli"
 
 # Klebsiella 
 u[str_which(u, "Kleb")] # no too many others 
 u[str_which(u, "kleb")] # none
 u[str_which(u, "Klebsiella")] # lots
-u[str_which(u, "pneumoniae")] # lots
-full_data[which(full_data$organism == u[str_which(u,  "Klebsiella pneumoniae")]),"organism_clean"] <- "Klebsiella pneumoniae"
+u[str_which(u, "pneumoniae")] # two (kleb + strep)
+full_data[which(full_data$organism %in% u[str_which(u,  "Klebsiella pneumoniae")]),"organism_clean"] <- "Klebsiella pneumoniae"
 
 # P aeruginosa
 u[str_which(u, "pseud")] # no too many others 
-u[str_which(u, "aeru")] # none
+u[str_which(u, "aeru")] # no others
 u[str_which(u, "Pseud")] # lots
 u[str_which(u, "P.")] # lots
-full_data[which(full_data$organism == u[str_which(u,  "Pseudomonas aeruginosa")]),"organism_clean"] <- "Pseudomonas aeruginosa"
+full_data[which(full_data$organism %in% u[str_which(u,  "Pseudomonas aeruginosa")]),"organism_clean"] <- "Pseudomonas aeruginosa"
 
-
-dim(full_data)
-head(full_data)
+### How many not in the top 4? 
+100 * dim(full_data %>% filter(organism_clean == ""))[1] / dim(full_data)[1]
 
 
 ### Clean age
@@ -257,26 +275,23 @@ full_data[ age > 12, age_group := "13 to 18 Years"]
 full_data[ age > 18, age_group := "19 to 64 Years"]
 full_data[ age > 64, age_group := "65 to 84 Years"]
 full_data[ age > 84, age_group := "85 and Over"]
-full_data[age_group == "Unknown", age_group := NA]
-full_data <- full_data[!is.na(age_group)]
+#full_data[age_group == "Unknown", age_group := NA] # already cleaned earlier 
+full_data <- full_data[!is.na(age_group)] # check but should remove nothing
 unique(full_data$age_group)
 full_data$age_group <- factor(full_data$age_group, 
-                                 levels = c("0 to 2 Years","3 to 12 Years", "13 to 18 Years",
-                                   "19 to 64 Years", "65 to 84 Years", "85 and Over"))
+                              levels = c("0 to 2 Years","3 to 12 Years", "13 to 18 Years",
+                                         "19 to 64 Years", "65 to 84 Years", "85 and Over"))
 
-#### Source cleaning 
-full_data <- full_data %>% mutate(key_source = "") # add new column for cleaned source data
+### Clean source 
+full_data <- full_data %>% mutate(key_source = "other") # add new column for cleaned source data
 full_data$source <- tolower(full_data$source)
 
-### What is in there?  see source_cleaning.R for analysis
-# u <- unique(full_data$source)
-# tt <- table(full_data$source) %>% as.data.frame() %>% 
-#   arrange(desc(Freq))  # easier to manipulate shorter dataframe for exploration of terms
-# colnames(tt) <- c("source","freq")
+### What is in there?  
+u <- unique(full_data$source)
+tt <- table(full_data$source) %>% as.data.frame() %>% arrange(desc(Freq))  # easier to manipulate shorter dataframe for exploration of terms
+colnames(tt) <- c("source","freq")
 
-### Key sources: 
-## Urine / blood / respiratory / wound / gastro
-# Could add reproduction / head (ear / eys) / heart 
+## Key sources: Urine / blood / respiratory / wound / gastro
 
 # urine
 full_data[str_which(full_data$source, "urine"),"key_source"] <- "urine"
@@ -308,15 +323,18 @@ full_data[str_which(full_data$source, "pus"),"key_source"] <- "wound"
 full_data[str_which(full_data$source, "cellulitis"),"key_source"] <- "wound"
 full_data[which(full_data$source == "abscess"),"key_source"] <- "wound"
 
-### Gastrointestinal track 
+# Gastrointestinal track 
 full_data[str_which(full_data$source, "gi:"),"key_source"] <- "gastro"
 full_data[str_which(full_data$source, "bowel"),"key_source"] <- "gastro"
 full_data[str_which(full_data$source, "intestinal"),"key_source"] <- "gastro"
 full_data[str_which(full_data$source, "gastric abscess"),"key_source"] <- "gastro"
 full_data[str_which(full_data$source, "colon"),"key_source"] <- "gastro"
 
+## How many not in the above 5 sources? 
+100 * dim(full_data %>% filter(key_source == "other"))[1]/dim(full_data)[1]
 
-### Antibiotics tidy
+
+### Clean antibiotics 
 full_data$antibiotic <- tolower(full_data$antibiotic)
 abx <- unique(full_data$antibiotic) 
 # rename the vena antibiotics (with _mic)
@@ -349,11 +367,10 @@ full_data[antibiotic == "trimethoprim_sulfa", antibiotic := "trimethoprim sulfa"
 full_data[antibiotic == "trimethoprim-sulfamethoxazole", antibiotic := "trimethoprim sulfa"]
 full_data[antibiotic == "trimethoprim/ sulfamethoxazole", antibiotic := "trimethoprim sulfa"]
 
-### Focus
-dim(full_data)
-dim(full_data %>% filter(!organism_clean == ""))
 
-# add income groups (world bank) and who regions
+###### full_data now has cleaned mic / age_group / source / organism / antibiotic => but not all will be used in the analysis 
+
+##### add income groups (world bank) and who regions
 # NOTE: venezuela is unclassified on income group, have asssigned umic
 income_grps <- as.data.table(read_csv("income.csv"))
 who_regions <- as.data.table(read_csv("who-regions.csv"))
@@ -362,30 +379,37 @@ full_data[income_grps, on = "country", income_grp := income]
 full_data[who_regions, on = "country", who_region := i.who_region]
 
 #### output
-write.csv(full_data %>% select(-age), "data/full_data.csv")
+# Filter only top 4 bugs
+final_cleaned_data <- full_data %>% filter(!organism_clean == "") %>% select(-age)
+write.csv(final_cleaned_data, "data/full_data.csv")
 
+##################** EXPLORE final cleaned data **###########################
+dim(final_cleaned_data) # 7,238,832
+head(final_cleaned_data)
 
-## some stats for the initial paper results
-bacteria_to_use <- c("Staphylococcus aureus", "Escherichia coli", "Klebsiella pneumoniae", "Pseudomonas aeruginosa")
-temp <- full_data[organism %in% bacteria_to_use]
+# Number of antibiotics
+length(unique(final_cleaned_data$antibiotic))
 
-data_props <- table(temp$data)
+# What databases?
+data_props <- table(final_cleaned_data$data)
 data_props[["atls"]] / sum(data_props)
 
-region_props <- table(temp$who_region)
-region_props/ sum(region_props)
+# Where?
+region_props <- table(final_cleaned_data$who_region)
+100 * region_props/ sum(region_props)
 
-gender_props <- table(temp$gender)
+# Demographics
+gender_props <- table(final_cleaned_data$gender)
 gender_props/ sum(gender_props)
 
-age_props <- table(temp$age_group)
+age_props <- table(final_cleaned_data$age_group)
 age_props/ sum(age_props)
 
-year_props <- table(temp$year)
+year_props <- table(final_cleaned_data$year)
 year_props/ sum(year_props)*100
 
-
-props_plot <- table(temp[,c("age_group", "gender")])
+# Visualise age and sex  
+props_plot <- table(final_cleaned_data[,c("age_group", "gender")])
 props_plot <- data.table(props_plot)
 props_plot$age_group <- factor(props_plot$age_group, levels = c(
   "0 to 2 Years", "3 to 12 Years", "13 to 18 Years", "19 to 64 Years", 
@@ -394,7 +418,26 @@ props_plot$age_group <- factor(props_plot$age_group, levels = c(
 
 props_plot$width <- rep(c(2,10,6, 45,20,15),2)
 
-ggplot(props_plot, aes(x = age_group, y = N/width, fill = gender)) + 
+g1 <- ggplot(props_plot, aes(x = age_group, y = N/width, fill = gender)) + 
   geom_bar(stat="identity", position = "dodge") + 
-  labs(x = "Age group", y = "Number of samples by age-year", fill = "Sex") + 
+  labs(x = "Age group", y = "Number of susceptibility tests", fill = "Sex") + 
   theme_linedraw() 
+
+
+# Visualise number year 
+ggplot(as.data.frame(final_cleaned_data) %>% group_by(year) %>% dplyr::summarise(n=n()), aes(x=year, y =n)) + 
+  geom_bar(stat="identity") 
+
+# Visualise MIC over time for key example (staph and levofloxacin)
+mic_over_time <- as.data.frame(final_cleaned_data %>% filter(organism == "Staphylococcus aureus", antibiotic == "levofloxacin")) %>% group_by(mic, age_group, year, gender) %>% dplyr::summarise(n=n()) %>% 
+  filter(n > 10)
+
+g2 <- ggplot(mic_over_time, aes(x=year, y = n, group = interaction(age_group, mic))) + 
+  geom_bar(stat="identity", position = "stack", aes(fill = age_group)) + 
+  facet_grid(mic~gender) + 
+  scale_fill_discrete("Age group") + 
+  scale_y_continuous("Number of susceptibility tests") + 
+  scale_x_continuous("Year")
+  
+g1 / g2 + plot_layout(heights = c(1,2))
+
