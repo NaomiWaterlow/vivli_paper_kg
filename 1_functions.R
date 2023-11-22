@@ -314,3 +314,56 @@ plot_generation_bytime_MICAG <- function(data, bacteria, groupings, gender_optio
     }
   }
 }
+
+### MV function 
+mv_analysis <- function(datamv, target_antibiotic, target_bug){
+  
+  # subset to just look at one bug-dryg
+  sub_data <- datamv[antibiotic == target_antibiotic &
+                       organism_clean == target_bug]
+  
+  # Specify which age group to make base age group (by putting it first)
+  # Default is 19-64 years (adults)
+  datamv$age_group <- factor(datamv$age_group, levels = c(
+    "19 to 64 Years", 
+    "0 to 2 Years",
+    "3 to 12 Years", 
+    "13 to 18 Years",
+    "65 to 84 Years", 
+    "85 and Over"
+  ))
+  
+  ######*********************** RUN ************************#################
+  # convert to categorical for each value
+  sub_data[, mic_cat_all := round(log(mic)/log(2))]
+  add_to_make_0 <- -min(unique(sub_data$mic_cat_all))
+  sub_data[, mic_cat_all := factor(add_to_make_0 + round(log(mic)/log(2)))]
+  
+  sub_data[, year_scaled := year - 2004]
+  # try running a proportional odds ordinal model
+  ord_mod <- polr(mic_cat_all ~ age_group + gender  + key_source + year_scaled , data = sub_data, 
+                  Hess = T)
+  summary(ord_mod)
+  
+  summary_table <- coef(summary(ord_mod))
+  pval <- pnorm(abs(summary_table[, "t value"]),lower.tail = FALSE)* 2
+  summary_table <- cbind(summary_table, "p value" = round(pval,3))
+  summary_table <- as.data.frame(summary_table)
+  summary_table$parameter <- rownames(summary_table)
+  summary_table <- data.table(summary_table)
+  summary_table[, Odds := exp(Value)]
+  
+  summary_table <- summary_table[1:12,c("parameter", "Value", "Std. Error", "p value", "Odds")]
+  
+  summary_table$Value <- round(summary_table$Value, 3)
+  summary_table$`Std. Error` <- round(summary_table$`Std. Error`, 3)
+  summary_table$Odds <- round(summary_table$Odds, 3)
+  
+  ### Save output
+  write.csv(summary_table, file = paste0("mv_output/regresssion_coefficients_", target_antibiotic, 
+                                         "_", target_bug,".csv"))
+  
+  return(summary_table)
+  
+  
+}
