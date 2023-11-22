@@ -225,9 +225,23 @@ dim(full_data) #13,318,750
 length(unique(full_data$organism))
 
 u <- unique(full_data$organism)
-table(full_data$organism) %>% as.data.frame() %>% 
+t <- table(full_data$organism) %>% as.data.frame() %>% 
   arrange(desc(Freq)) 
 401 - 122 # number < 1000 results
+# What is the distribution? lots at low numbers
+t_lower <- t %>% filter(Freq < 500000)
+hist(t_lower$Freq, breaks = seq(0,500000, by = 5000))
+# Median is 173
+median(t$Freq)
+# Big jump to high numbers 
+t %>% filter(Freq > 1000)
+t_higher <- t %>% filter(Freq > 1000)
+hist(t_higher$Freq)
+# What if keep top 100? has to be > 1600 
+t[100,]
+# 4 have over 140K and rest 73K or less
+write.csv(t[1:4,"Var1"], "data/top_bacteria.csv")
+
 
 ## 4 have > 1.4M. Rest <<< 750K. 
 
