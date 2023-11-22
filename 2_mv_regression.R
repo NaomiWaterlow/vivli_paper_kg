@@ -34,4 +34,5 @@ for(i in top_bacteria){
   }
 }
 
+write.csv(store, "mv_output/store_all.csv")
   
