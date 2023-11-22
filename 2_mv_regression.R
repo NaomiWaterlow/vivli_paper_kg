@@ -3,56 +3,35 @@
 library(data.table); library(MASS)
 
 # read in data (can use alternative)
-full_data <- as.data.table(read.csv("data/full_data.csv"))
+full_data_orig <- as.data.table(read.csv("data/full_data.csv"))
 
-######*********************** SPECIFY ************************#################
+if(!file.exists("mv_output")){dir.create("mv_output")} 
+
+######*********************** SPECIFY WHICH BUG + DRUG ************************#################
 # specify which bacteria and antibiotic of interest
 # NOTE - must match spelling in the data table
-target_antibiotic <- "levofloxacin"
-target_bug <- 'Staphylococcus aureus'
+mv_analysis(full_data_orig, "levofloxacin", "Staphylococcus aureus")
 
-# Specify which age group to make base age group (by putting it first)
-# Default is 19-64 years (adults)
-full_data$age_group <- factor(full_data$age_group, levels = c(
-  "19 to 64 Years", 
-  "0 to 2 Years",
-  "3 to 12 Years", 
-  "13 to 18 Years",
-  "65 to 84 Years", 
-  "85 and Over"
-))
+######### OR cycle through all
+top_bacteria <- t(read_csv("data/top_bacteria.csv")[,-1])
+store <- c()
 
-######*********************** RUN ************************#################
-# after specified the two above items, can just run the whole script and it will 
-# generate the regression and save a table with the coefficient values
+### Run through all 
+for(i in top_bacteria){
+  target_bug <- i
+  full_data_bug <- full_data_orig %>% filter(organism_clean == target_bug)
+  # which resistances were tested for? 
+  t <- full_data_bug %>% group_by(antibiotic) %>% summarise(n=n()) 
+  # Want more than 10000 samples or > 10%
+  top_drugs <- t %>% filter(n > 10000)
+  for(j in top_drugs$antibiotic){
+    target_antibiotic <- j
+    m <- mv_analysis(full_data_orig, target_antibiotic, target_bug)
+    print(paste0("Run for ",target_antibiotic, " ", target_bug))
+    ## Store
+    store <- rbind(store, m %>% mutate(antibiotic = target_antibiotic, 
+                                       bacteria = target_bug))
+  }
+}
 
-# subset to just look at one bug-dryg
-sub_data <- full_data[antibiotic == target_antibiotic & 
-                         organism_clean == target_bug]
-
-# convert to categorical for each value
-sub_data[, mic_cat_all := round(log(mic)/log(2))]
-add_to_make_0 <- -min(unique(sub_data$mic_cat_all))
-sub_data[, mic_cat_all := factor(add_to_make_0 + round(log(mic)/log(2)))]
-
-sub_data[, year_scaled := year - 2004]
-# try running a proportional odds ordinal model
-ord_mod <- polr(mic_cat_all ~ age_group + gender  + key_source + year_scaled , data = sub_data, 
-                Hess = T)
-summary(ord_mod)
-
-summary_table <- coef(summary(ord_mod))
-pval <- pnorm(abs(summary_table[, "t value"]),lower.tail = FALSE)* 2
-summary_table <- cbind(summary_table, "p value" = round(pval,3))
-summary_table <- as.data.frame(summary_table)
-summary_table$parameter <- rownames(summary_table)
-summary_table <- data.table(summary_table)
-summary_table[, Odds := exp(Value)]
-
-summary_table <- summary_table[1:12,c("parameter", "Value", "Std. Error", "p value", "Odds")]
-
-summary_table$Value <- round(summary_table$Value, 3)
-summary_table$`Std. Error` <- round(summary_table$`Std. Error`, 3)
-summary_table$Odds <- round(summary_table$Odds, 3)
-write.csv(summary_table, file = paste0("regresssion_coefficients_", target_antibiotic, 
-                                       "_", target_bug,".csv"))
+  
