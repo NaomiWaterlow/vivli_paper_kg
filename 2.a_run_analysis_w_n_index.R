@@ -71,9 +71,29 @@ n_index_df <- rbind(summarised_n_index_age, summarised_n_index_source)
 
 rm(summarised_n_index_age, summarised_n_index_source)
 
+## Calculating correlation coefficient
+correlation_result <- n_index_df %>%
+  group_by(grouping, organism_clean, gender) %>%
+  summarize(correlation_coefficient = cor(Sum_N, max_index, use = "complete.obs"))
+
+correlation_result$vjust <- if_else(correlation_result$gender == "f", -1, 1)
+
+## Labels for plot
+supp.lab <- c("Age", "Source")
+names(supp.lab) <- c("age", "source")
+
 ## Plot
 
-ggplot(n_index_df, aes(x= max_index, y = Sum_N, color = gender))+
-  facet_wrap(~ grouping + organism_clean, ncol = 4)+
-  geom_point()
-  
+ggplot(n_index_df, aes(x= Sum_N, y = max_index, color = gender))+
+  facet_wrap(~ grouping + organism_clean, ncol = 4, labeller = labeller(grouping = supp.lab))+
+  geom_point()+
+  geom_smooth(method='lm')+
+  scale_x_continuous(limits = c(0,100000))+
+  geom_text(data = correlation_result,
+            aes(x = 82000, y = 0.7, label = paste("R = ", round(correlation_coefficient, digits = 3)), vjust = vjust),
+            size = 3
+            ,show.legend = FALSE
+            )+
+  xlab("Number of samples")+
+  ylab("Maximum difference in MIC across groupings")+
+  scale_color_discrete(name = "Gender")
