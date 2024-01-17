@@ -39,4 +39,39 @@ for(i in top_bacteria){
 }
 
 write.csv(store, "mv_output/store_all.csv")
-  
+
+####### Explore output for those with high index values: note only do MV on those with > 10000 samples so not all in there
+store <- read_csv("mv_output/store_all.csv")
+store_n <- store %>% mutate(combo = paste0(antibiotic,"_",bacteria))
+
+# Bug-drug combinations with high index values
+high_combos = as.data.frame(
+  rbind(c("age_sex","levofloxacin_Staphylococcus aureus"),
+        c("key_source","levofloxacin_Escherichia coli"),
+        c("age_sex","levofloxacin_Klebsiella pneumoniae"),
+        c("age_sex","levofloxacin_Pseudomonas aeruginosa"),
+        c("age_sex","imipenem_Staphylococcus aureus"),
+        c("age_sex","doripenem_Pseudomonas aeruginosa"),
+        c("age_sex","cefepime_Escherichia coli"),
+        c("age_sex","cefepime_Klebsiella pneumoniae")))
+
+# Other high index possibilities
+#c("age_sex","ceftolozane tazobactam_Klebsiella pneumoniae"),
+#c("key_source","moxifloxacin_Staphylococcus aureus"),
+#c("key_source","trimethoprim sulfa_Staphylococcus aureus"),
+#c("key_source","levofloxacin_Staphylococcus aureus"),
+#c("key_source","ciprofloxacin_Escherichia coli"),
+#c("key_source","ceftaroline_Klebsiella pneumoniae"),
+#c("key_source","ertapenem_Klebsiella pneumoniae"),
+#c("key_source","ceftaroline_Pseudomonas aeruginosa")))
+
+colnames(high_combos) <- c("grouping","combo")
+
+store_nhc <- store_n %>% filter(combo %in% high_combos$combo)
+
+length(unique(store_nhc$combo)) # 12
+dim(high_combos) # 15
+### Some high index not in MV as fewer than 10,000 samples
+write.csv(store_nhc, "mv_output/store_nhighcombos.csv")
+store_nhc %>% pivot_wider()
+
