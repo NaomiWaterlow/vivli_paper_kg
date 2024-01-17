@@ -187,7 +187,7 @@ plot_generation_bytime_MICAG <- function(data, bacteria, groupings, gender_optio
         print("running for no gender")
         for(j in bacteria){
           data_sub <- data[organism == j]
-          print(dim(data_sub))
+          
           # vector for storing relevant drugs and plots
           drugs <- unique(data_sub$antibiotic)
           
@@ -217,8 +217,10 @@ plot_generation_bytime_MICAG <- function(data, bacteria, groupings, gender_optio
             # store plot
             for_plot <- for_plot[N>100]
             if(nrow(for_plot)>0){
-              temp<- ggplot(for_plot[N>=100], aes(x= MIC, y =cumulative_sum, colour = !!sym(characteristic), group = year)) + 
-                geom_line()+
+              temp<- ggplot(for_plot[N>=100] , 
+                            aes(x= MIC, y =cumulative_sum, 
+                                colour = !!sym(characteristic), group = interaction(key_source,year))) + 
+                geom_line(aes(linetype = factor(year)))+
                 labs(title = paste0("MIC - ", i, paste0(". Tot samples = ", tot_samps)), x = "MIC value", 
                      y = paste0("cumulative proportion of samples by ", characteristic), 
                      colour = characteristic) + 
