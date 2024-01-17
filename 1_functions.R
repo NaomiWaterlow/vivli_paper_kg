@@ -169,11 +169,13 @@ plot_generation_bytime_MICAG <- function(data, bacteria, groupings, gender_optio
   ######*********************** RUN ************************#################
   # after specified the two above items, can just run the whole script and it will 
   # generate the desired plots
-  for(characteristic in characteristics){
+  for(characteristic in groupings){
     
     print(paste0("Running for ", characteristic))
     
-    for (include_gender in include_gender_options){
+    for(include_gender in c("T","F")){ # True or False
+      
+      print(include_gender)
       
       # make sure there's a folder to store the plots
       dir.create(file.path("plots"), showWarnings = FALSE)
@@ -181,10 +183,11 @@ plot_generation_bytime_MICAG <- function(data, bacteria, groupings, gender_optio
       output_plot <- c()
       
       # Look at patterns in three bacteria with or without gender
-      if(include_gender == F){
-        for(j in bacteria_to_use){
-          data_sub <- full_data[organism == j]
-          
+      if(include_gender == "F"){
+        print("running for no gender")
+        for(j in bacteria){
+          data_sub <- data[organism == j]
+          print(dim(data_sub))
           # vector for storing relevant drugs and plots
           drugs <- unique(data_sub$antibiotic)
           
@@ -246,10 +249,10 @@ plot_generation_bytime_MICAG <- function(data, bacteria, groupings, gender_optio
         write.csv(output_plot, paste0("plots/year_",characteristic, "output.csv"))
       }
       
-      if(include_gender == T){
+      if(include_gender == "T"){
         for(j in bacteria_to_use){
           
-          data_sub <- full_data[organism == j]
+          data_sub <- data[organism == j]
           # vector for storing relevant drugs and plots
           # vector for storing relevant drugs and plots
           drugs <- unique(data_sub$antibiotic)
