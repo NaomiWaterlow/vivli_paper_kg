@@ -324,7 +324,7 @@ mv_analysis <- function(datamv, target_antibiotic, target_bug){
   
   # Specify which age group to make base age group (by putting it first)
   # Default is 19-64 years (adults)
-  datamv$age_group <- factor(datamv$age_group, levels = c(
+  sub_data$age_group <- factor(sub_data$age_group, levels = c(
     "19 to 64 Years", 
     "0 to 2 Years",
     "3 to 12 Years", 
@@ -332,6 +332,21 @@ mv_analysis <- function(datamv, target_antibiotic, target_bug){
     "65 to 84 Years", 
     "85 and Over"
   ))
+  
+  # Specify which key source to make base 
+  # Default is "other"
+  sub_data$key_source <- factor(sub_data$key_source, levels = c(
+    "other", 
+    "blood", 
+    "gastro", 
+    "respiratory", 
+    "urine", 
+    "wound"
+  ))
+  
+  # Specify which gender to make base 
+  # Default is "female"
+  sub_data$gender <- factor(sub_data$gender, levels = c("f","m"))
   
   ######*********************** RUN ************************#################
   # convert to categorical for each value
@@ -343,7 +358,7 @@ mv_analysis <- function(datamv, target_antibiotic, target_bug){
   # try running a proportional odds ordinal model
   ord_mod <- polr(mic_cat_all ~ age_group + gender  + key_source + year_scaled , data = sub_data, 
                   Hess = T)
-  summary(ord_mod)
+  #summary(ord_mod)
   
   summary_table <- coef(summary(ord_mod))
   pval <- pnorm(abs(summary_table[, "t value"]),lower.tail = FALSE)* 2
@@ -359,7 +374,7 @@ mv_analysis <- function(datamv, target_antibiotic, target_bug){
   summary_table$`Std. Error` <- round(summary_table$`Std. Error`, 3)
   summary_table$Odds <- round(summary_table$Odds, 3)
   
-  ### Save output
+  ### Save outputs and returns it
   write.csv(summary_table, file = paste0("mv_output/regresssion_coefficients_", target_antibiotic, 
                                          "_", target_bug,".csv"))
   
