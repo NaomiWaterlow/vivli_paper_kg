@@ -5,6 +5,7 @@
 
 /data/*
 /plots/*
+/mv_output/*
 
 # Session Data files
 .RData
