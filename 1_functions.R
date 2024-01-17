@@ -217,15 +217,17 @@ plot_generation_bytime_MICAG <- function(data, bacteria, groupings, gender_optio
             # store plot
             for_plot <- for_plot[N>100]
             if(nrow(for_plot)>0){
-              temp<- ggplot(for_plot[N>=100] , 
+              temp<- ggplot(for_plot[N>=100], 
                             aes(x= MIC, y =cumulative_sum, 
-                                colour = !!sym(characteristic), group = interaction(key_source,year))) + 
-                geom_line(aes(linetype = factor(year)))+
+                                colour = !!sym(characteristic), 
+                                group = interaction(!!sym(characteristic),year))) + 
+                geom_line(aes(alpha = year / 2022)) +
                 labs(title = paste0("MIC - ", i, paste0(". Tot samples = ", tot_samps)), x = "MIC value", 
                      y = paste0("cumulative proportion of samples by ", characteristic), 
                      colour = characteristic) + 
                 scale_x_log10() + 
-                theme_linedraw() 
+                theme_linedraw() + 
+                guides(alpha = "none")
             }
             ### Output 
             output_plot <- rbind(output_plot, for_plot %>% mutate(antibiotic = i, organism = j))
@@ -284,14 +286,17 @@ plot_generation_bytime_MICAG <- function(data, bacteria, groupings, gender_optio
             # store plot
             
             if(nrow(for_plot)>0){
-              temp<- ggplot(for_plot, aes(x= MIC, y =cumulative_sum, colour = !!sym(characteristic), 
-                                          linetype = gender)) + 
-                geom_line()+
+              temp<- ggplot(for_plot, aes(x= MIC, y =cumulative_sum, 
+                                          colour = !!sym(characteristic), 
+                                          group = interaction(!!sym(characteristic),year, gender))) + 
+                geom_line(aes(linetype = gender, alpha = year/2022)) +
                 labs(title = paste0("MIC by age group - ", i, paste0(". Tot samples = ", tot_samps)), x = "MIC value", 
                      y = paste0("cumulative proportion of samples by ", characteristic), 
                      colour = characteristic) + 
                 scale_x_log10() + 
-                theme_linedraw() 
+                theme_linedraw() + 
+                guides(alpha = "none")
+                
             }
             ### Output 
             output_plot <- rbind(output_plot, for_plot %>% mutate(antibiotic = i, organism = j))
