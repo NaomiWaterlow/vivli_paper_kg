@@ -7,7 +7,7 @@ library(data.table);library(ggplot2);library(cowplot)
 full_data <- as.data.table(read.csv("data/full_data.csv"))
 
 # specify which bugs are of interest
-bacteria_to_use <- unique(full_data$organism_clean) 
+bacteria_to_use <- unique(full_data$organism) 
 
 ######*********************** SPECIFY ************************#################
 ## What characteristic to look at. (Note: Must match column name)
