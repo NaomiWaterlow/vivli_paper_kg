@@ -73,5 +73,5 @@ length(unique(store_nhc$combo)) # 12
 dim(high_combos) # 15
 ### Some high index not in MV as fewer than 10,000 samples
 write.csv(store_nhc, "mv_output/store_nhighcombos.csv")
-store_nhc %>% pivot_wider()
+store_nhc %>% pivot_wider(id_cols = "parameter")
 
