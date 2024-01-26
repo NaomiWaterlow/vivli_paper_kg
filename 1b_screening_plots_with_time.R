@@ -1,6 +1,6 @@
 ##### MICAG screening and plotting MIC tools by sub_group
 # WITH YEAR
-library(data.table);library(ggplot2);library(cowplot)
+library(data.table);library(ggplot2);library(cowplot);library(tidyverse)
 
 # read in the data
 # option to load in own data here. Must be same format. 
