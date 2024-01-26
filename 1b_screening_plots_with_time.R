@@ -62,7 +62,7 @@ for(characteristic in characteristics){
           # store plot
           for_plot <- for_plot[N>100]
           if(nrow(for_plot)>0){
-            temp<- ggplot(for_plot[N>=100], aes(x= MIC, y =cumulative_sum, colour = !!sym(characteristic), group = year)) + 
+            temp<- ggplot(for_plot[N>=100], aes(x= MIC, y =cumulative_sum, colour = !!sym(characteristic), linetype=as.factor(year), group=interaction(!!sym(characteristic),as.factor(year)))) + 
               geom_line()+
               labs(title = paste0("MIC - ", i, paste0(". Tot samples = ", tot_samps)), x = "MIC value", 
                    y = paste0("cumulative proportion of samples by ", characteristic), 
@@ -128,7 +128,7 @@ for(characteristic in characteristics){
           
           if(nrow(for_plot)>0){
             temp<- ggplot(for_plot, aes(x= MIC, y =cumulative_sum, colour = !!sym(characteristic), 
-                                        linetype = gender)) + 
+                                        linetype = gender, group=interaction(!!sym(characteristic),as.factor(year),gender))) + 
               geom_line()+
               labs(title = paste0("MIC by age group - ", i, paste0(". Tot samples = ", tot_samps)), x = "MIC value", 
                    y = paste0("cumulative proportion of samples by ", characteristic), 
