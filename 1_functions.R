@@ -173,7 +173,7 @@ plot_generation_bytime_MICAG <- function(data, bacteria, groupings, gender_optio
     
     print(paste0("Running for ", characteristic))
     
-    for (include_gender in include_gender_options){
+    for (include_gender in gender_options){
       
       # make sure there's a folder to store the plots
       dir.create(file.path("plots"), showWarnings = FALSE)
