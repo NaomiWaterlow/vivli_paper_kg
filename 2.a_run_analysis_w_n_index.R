@@ -2,7 +2,7 @@
 
 ##### MICAG Tool for screening and plotting MIC by sub_group
 library(data.table);library(ggplot2);library(cowplot); library(dplyr)
-
+theme_set(theme_bw())
 ### Load in the functions
 source("1_functions.R")
 
@@ -14,7 +14,7 @@ full_data <- as.data.table(read.csv("data/full_data.csv"))
 bacteria_to_use <- unique(full_data$organism_clean) 
 
 ## What characteristic to look at. (Note: Must match column name)
-characteristics <- c("age_group", "key_source") #Can run additional options: 
+characteristics <- c("age_group", "key_source", "country", "income_grp", "who_region") # c("age_group", "key_source") #Can run additional options: 
 #"key_source" # "age_group" # country # income_grp #who_region
 #
 
@@ -23,8 +23,6 @@ plot_generation_MICAG(full_data, bacteria_to_use, characteristics)
 
 ### Run by time 
 plot_generation_bytime_MICAG(full_data, bacteria_to_use, characteristics) 
-
-
 
 
 ## We would like to see the effect of sample size on max index value, to see whether over
@@ -52,7 +50,6 @@ summarised_n_index_age$grouping <- "age"
 ## for source
 index_source_results <- read.csv("plots/gender_key_sourceindex_store.csv")
 
-
 summarised_n_index_source <- index_source_results %>%
   group_by(antibiotic, organism_clean, gender) %>%
   summarize(Sum_N = sum(N))
@@ -66,10 +63,26 @@ rm(temp_n_max_index_source)
 
 summarised_n_index_source$grouping <- "source"
 
+## for who region
+index_who_results <- read.csv("plots/gender_who_regionindex_store.csv")
 
-n_index_df <- rbind(summarised_n_index_age, summarised_n_index_source)
+summarised_n_index_who <- index_who_results %>%
+  group_by(antibiotic, organism_clean, gender) %>%
+  summarize(Sum_N = sum(N))
 
-rm(summarised_n_index_age, summarised_n_index_source)
+temp_n_max_index_who <- index_who_results %>%
+  group_by(antibiotic, organism_clean, gender) %>%
+  summarize(max_index = max(dff))
+
+summarised_n_index_who <- cbind(summarised_n_index_who, temp_n_max_index_who[, -c(1:3)])
+rm(temp_n_max_index_who)
+
+summarised_n_index_who$grouping <- "who"
+
+
+n_index_df <- rbind(summarised_n_index_age, summarised_n_index_source, summarised_n_index_who)
+
+rm(summarised_n_index_age, summarised_n_index_source, summarised_n_index_who)
 
 ## Calculating correlation coefficient
 correlation_result <- n_index_df %>%
@@ -79,13 +92,15 @@ correlation_result <- n_index_df %>%
 correlation_result$vjust <- if_else(correlation_result$gender == "f", -1, 1)
 
 ## Labels for plot
-supp.lab <- c("Age", "Source")
-names(supp.lab) <- c("age", "source")
+supp.lab <- c("Age", "Source", "WHO region")
+names(supp.lab) <- c("age", "source","who")
 
-## Plot
+## Plot to explore if correlation
+## Remove low numbers
+table(n_index_df$Sum_N)
 
-ggplot(n_index_df, aes(x= Sum_N, y = max_index, color = gender))+
-  facet_wrap(~ grouping + organism_clean, ncol = 4, labeller = labeller(grouping = supp.lab))+
+ggplot(n_index_df %>% filter(Sum_N > 100), aes(x= Sum_N, y = max_index, color = gender))+
+  facet_grid(grouping ~ organism_clean, labeller = labeller(grouping = supp.lab))+
   geom_point()+
   geom_smooth(method='lm')+
   scale_x_continuous(limits = c(0,100000))+
@@ -96,4 +111,5 @@ ggplot(n_index_df, aes(x= Sum_N, y = max_index, color = gender))+
             )+
   xlab("Number of samples")+
   ylab("Maximum difference in MIC across groupings")+
-  scale_color_discrete(name = "Gender")
+  scale_color_discrete(name = "Gender", labels = c("female","male")) + 
+  theme(strip.text.x = element_text(face = "italic"))
