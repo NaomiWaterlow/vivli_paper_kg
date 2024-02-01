@@ -11,6 +11,7 @@ theme_set(theme_bw(base_size = 16))
 characteristics <- c("age_group", "key_source") # "age_group"
 
 ############################# Get data
+############################# Get data  ######
 output_data <- c()
 output_index <- c()
 
@@ -56,7 +57,6 @@ for(i in 1:nrow(combinations)){
                                               antibiotic == combinations[i,"antibiotic"])) 
 }
 
-#################################### Age only
 plot_age <- plot_data %>% filter(charac == "age_group")
 plot_age$charac_value <- factor(plot_age$charac_value, 
                                 levels = c("0 to 2 Years","3 to 12 Years", "13 to 18 Years",
@@ -234,7 +234,7 @@ sum_index_gender_yr <- index_comparison_gender_yr %>%
   summarise(mx = max(df_mic), # Max diff for this bug_drug 
             n_big = sum(unique(df_mic) > 0.1)) # Count how many MIC have > 10% diffs
 
-# heat map
+###### heat map
 gg <- sum_index_gender_yr %>% filter(n_big > 3)
 ggplot(gg, aes(x=year, y = antibiotic, z = mx)) + 
   geom_tile(aes(fill = mx)) + 
@@ -253,7 +253,7 @@ g1t <- ggplot(gg %>% filter(organism %in% c("Staphylococcus aureus","Escherichia
   theme(strip.text = element_text(face = "italic"))
 ggsave(paste0("plots/", characteristic, "index_time_heat_map.pdf"), height = 7, width = 15)
 
-## Over time 
+###### Over time
 plot_datat_staphlevo <- plot_datat %>% filter(antibiotic == "levofloxacin",
                                               organism == "Staphylococcus aureus", 
                                               charac == characteristic) %>%
@@ -279,7 +279,7 @@ g1t + g2t & theme(legend.position = "bottom")
 ggsave(paste0("plots/", characteristic, "time_figure.pdf"), height = 7, width = 15)
 
 
-### time plot
+###### time plot
 samples_store <- data.table(read.csv(paste0("plots/year_gender_",characteristic, "samples_store.csv")))
 
 samples_store$age_group <- factor(samples_store$age_group, 
@@ -298,4 +298,80 @@ g_samples <- ggplot(samples_store, aes(x=Year, y=N, fill = age_group))+
 
 g1t + g_samples
 ggsave(paste0("plots/", characteristic, "time2_figure.pdf"), height = 12, width = 22)
+
+
+###### time plot for N and prop for specific bug-drug combos
+
+full_data <- as.data.table(read.csv("data/full_data.csv"))
+bacteria_to_use <- unique(full_data$organism) 
+
+### combos
+combinations <- as.data.frame(rbind(c("Staphylococcus aureus", "levofloxacin"),
+                                    c("Escherichia coli", "levofloxacin"),
+                                    c("Staphylococcus aureus", "meropenem"),
+                                    c("Escherichia coli", "meropenem"),
+                                    c("Staphylococcus aureus", "ampicillin"),
+                                    c("Escherichia coli", "ampicillin")))
+colnames(combinations) <- c("organism","antibiotic")
+
+# Grab just the data wanted for the examples
+plot_datat <- c()
+
+for(i in 1:nrow(combinations)){
+  plot_datat <- rbind(plot_datat,
+                      full_data %>% filter(organism == combinations[i,"organism"],
+                                           antibiotic == combinations[i,"antibiotic"]))
+                              }
+
+#for loop to produce one graph per bug-drug combo
+for(j in bacteria_to_use){
+  data_sub <- plot_datat[organism == j]
+  
+  # vector for storing relevant drugs and plots
+  drugs <- unique(data_sub$antibiotic)
+  
+  drugs <- sort(drugs)
+  
+  plot_store <- list()
+  
+  for(i in drugs){
+    data_sub_drug <- data_sub[antibiotic == i]
+    test <- data_sub_drug[, .N, by = .(mic,year,age_group )]
+    colnames(test) <- c("MIC", "year","age_group", "N")
+    # also need out of total observations for the age_group/gender
+    test2 <- data_sub_drug[, .N, by = .((mic))]
+    colnames(test2) <- c("MIC", "N")
+    # note total number of MIC samples
+    tot_samps <- sum(test2$N)
+    # combine the two together so can work out proportion
+    test <- test[test2, on = c("MIC"), Total := i.N]
+    #work out proportion
+    for_plottt <- test[, prop := N/Total]
+    
+    if(nrow(for_plottt)>0){
+    b1 <- ggplot(for_plottt, aes(x=as.factor(year),y=N,fill=as.factor(MIC))) +
+      geom_col(position = "identity") 
+    
+    b2 <- ggplot(for_plottt, aes(x=as.factor(year),y=prop,color=as.factor(MIC),group=as.factor(MIC)))+
+      geom_line()  
+   
+    b3 <- ggplot(for_plottt, aes(x=as.factor(year),y=N,fill=age_group)) +
+      geom_col(position = "identity") +
+      facet_wrap(~MIC)
+    
+    b4 <- ggplot(for_plottt, aes(x=as.factor(year),y= prop,color=age_group)) +
+      geom_line(aes(group=interaction(age_group,MIC))) +
+      facet_wrap(~MIC) 
+    
+    fullplot <- ((b1/b2) | (b3/b4))
+    
+    tiff(paste0("plots/",j , "_", i, "_MICs.tiff"), width = 2500, height = 1500)
+    print(fullplot, nrow = 4,ncol=3, guides = 'collect')
+    dev.off()
+    }
+
+  }
+  
+}
+ 
 
