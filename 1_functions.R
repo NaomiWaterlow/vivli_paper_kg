@@ -169,11 +169,13 @@ plot_generation_bytime_MICAG <- function(data, bacteria, groupings, gender_optio
   ######*********************** RUN ************************#################
   # after specified the two above items, can just run the whole script and it will 
   # generate the desired plots
-  for(characteristic in characteristics){
+  for(characteristic in groupings){
     
     print(paste0("Running for ", characteristic))
     
-    for (include_gender in include_gender_options){
+    for(include_gender in c("T","F")){ # True or False
+      
+      print(include_gender)
       
       # make sure there's a folder to store the plots
       dir.create(file.path("plots"), showWarnings = FALSE)
@@ -181,9 +183,10 @@ plot_generation_bytime_MICAG <- function(data, bacteria, groupings, gender_optio
       output_plot <- c()
       
       # Look at patterns in three bacteria with or without gender
-      if(include_gender == F){
-        for(j in bacteria_to_use){
-          data_sub <- full_data[organism == j]
+      if(include_gender == "F"){
+        print("running for no gender")
+        for(j in bacteria){
+          data_sub <- data[organism == j]
           
           # vector for storing relevant drugs and plots
           drugs <- unique(data_sub$antibiotic)
@@ -214,13 +217,17 @@ plot_generation_bytime_MICAG <- function(data, bacteria, groupings, gender_optio
             # store plot
             for_plot <- for_plot[N>100]
             if(nrow(for_plot)>0){
-              temp<- ggplot(for_plot[N>=100], aes(x= MIC, y =cumulative_sum, colour = !!sym(characteristic), group = year)) + 
-                geom_line()+
+              temp<- ggplot(for_plot[N>=100], 
+                            aes(x= MIC, y =cumulative_sum, 
+                                colour = !!sym(characteristic), 
+                                group = interaction(!!sym(characteristic),year))) + 
+                geom_line(aes(alpha = year / 2022)) +
                 labs(title = paste0("MIC - ", i, paste0(". Tot samples = ", tot_samps)), x = "MIC value", 
                      y = paste0("cumulative proportion of samples by ", characteristic), 
                      colour = characteristic) + 
                 scale_x_log10() + 
-                theme_linedraw() 
+                theme_linedraw() + 
+                guides(alpha = "none")
             }
             ### Output 
             output_plot <- rbind(output_plot, for_plot %>% mutate(antibiotic = i, organism = j))
@@ -246,10 +253,10 @@ plot_generation_bytime_MICAG <- function(data, bacteria, groupings, gender_optio
         write.csv(output_plot, paste0("plots/year_",characteristic, "output.csv"))
       }
       
-      if(include_gender == T){
+      if(include_gender == "T"){
         for(j in bacteria_to_use){
           
-          data_sub <- full_data[organism == j]
+          data_sub <- data[organism == j]
           # vector for storing relevant drugs and plots
           # vector for storing relevant drugs and plots
           drugs <- unique(data_sub$antibiotic)
@@ -279,14 +286,17 @@ plot_generation_bytime_MICAG <- function(data, bacteria, groupings, gender_optio
             # store plot
             
             if(nrow(for_plot)>0){
-              temp<- ggplot(for_plot, aes(x= MIC, y =cumulative_sum, colour = !!sym(characteristic), 
-                                          linetype = gender)) + 
-                geom_line()+
+              temp<- ggplot(for_plot, aes(x= MIC, y =cumulative_sum, 
+                                          colour = !!sym(characteristic), 
+                                          group = interaction(!!sym(characteristic),year, gender))) + 
+                geom_line(aes(linetype = gender, alpha = year/2022)) +
                 labs(title = paste0("MIC by age group - ", i, paste0(". Tot samples = ", tot_samps)), x = "MIC value", 
                      y = paste0("cumulative proportion of samples by ", characteristic), 
                      colour = characteristic) + 
                 scale_x_log10() + 
-                theme_linedraw() 
+                theme_linedraw() + 
+                guides(alpha = "none")
+                
             }
             ### Output 
             output_plot <- rbind(output_plot, for_plot %>% mutate(antibiotic = i, organism = j))
@@ -324,7 +334,7 @@ mv_analysis <- function(datamv, target_antibiotic, target_bug){
   
   # Specify which age group to make base age group (by putting it first)
   # Default is 19-64 years (adults)
-  datamv$age_group <- factor(datamv$age_group, levels = c(
+  sub_data$age_group <- factor(sub_data$age_group, levels = c(
     "19 to 64 Years", 
     "0 to 2 Years",
     "3 to 12 Years", 
@@ -332,6 +342,21 @@ mv_analysis <- function(datamv, target_antibiotic, target_bug){
     "65 to 84 Years", 
     "85 and Over"
   ))
+  
+  # Specify which key source to make base 
+  # Default is "other"
+  sub_data$key_source <- factor(sub_data$key_source, levels = c(
+    "other", 
+    "blood", 
+    "gastro", 
+    "respiratory", 
+    "urine", 
+    "wound"
+  ))
+  
+  # Specify which gender to make base 
+  # Default is "female"
+  sub_data$gender <- factor(sub_data$gender, levels = c("f","m"))
   
   ######*********************** RUN ************************#################
   # convert to categorical for each value
@@ -343,7 +368,7 @@ mv_analysis <- function(datamv, target_antibiotic, target_bug){
   # try running a proportional odds ordinal model
   ord_mod <- polr(mic_cat_all ~ age_group + gender  + key_source + year_scaled , data = sub_data, 
                   Hess = T)
-  summary(ord_mod)
+  #summary(ord_mod)
   
   summary_table <- coef(summary(ord_mod))
   pval <- pnorm(abs(summary_table[, "t value"]),lower.tail = FALSE)* 2
@@ -359,7 +384,7 @@ mv_analysis <- function(datamv, target_antibiotic, target_bug){
   summary_table$`Std. Error` <- round(summary_table$`Std. Error`, 3)
   summary_table$Odds <- round(summary_table$Odds, 3)
   
-  ### Save output
+  ### Save outputs and returns it
   write.csv(summary_table, file = paste0("mv_output/regresssion_coefficients_", target_antibiotic, 
                                          "_", target_bug,".csv"))
   
