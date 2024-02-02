@@ -1,5 +1,5 @@
 ##### Functions 
-
+characteristic <- "sex"# "age" #  "who_region
 
 ### Plot to give initial exploration plots and csv on index values
 plot_generation_MICAG <- function(data, bacteria, groupings, gender_options = T){
