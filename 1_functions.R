@@ -358,6 +358,12 @@ mv_analysis <- function(datamv, target_antibiotic, target_bug){
   # Default is "female"
   sub_data$gender <- factor(sub_data$gender, levels = c("f","m"))
   
+  # Specify which who region to make base
+  # Default is "Europe"
+  sub_data$who_region <- factor(sub_data$who_region, 
+                                levels = c("Europe", "Americas", "Western Pacific", "Eastern Mediterranean", 
+                                "Africa", "South-East Asia"))
+  
   ######*********************** RUN ************************#################
   # convert to categorical for each value
   sub_data[, mic_cat_all := round(log(mic)/log(2))]
@@ -366,7 +372,7 @@ mv_analysis <- function(datamv, target_antibiotic, target_bug){
   
   sub_data[, year_scaled := year - 2004]
   # try running a proportional odds ordinal model
-  ord_mod <- polr(mic_cat_all ~ age_group + gender  + key_source + year_scaled , data = sub_data, 
+  ord_mod <- polr(mic_cat_all ~ age_group + gender  + key_source + year_scaled + who_region, data = sub_data, 
                   Hess = T)
   #summary(ord_mod)
   
@@ -378,7 +384,7 @@ mv_analysis <- function(datamv, target_antibiotic, target_bug){
   summary_table <- data.table(summary_table)
   summary_table[, Odds := exp(Value)]
   
-  summary_table <- summary_table[1:12,c("parameter", "Value", "Std. Error", "p value", "Odds")]
+  summary_table <- summary_table[1:17,c("parameter", "Value", "Std. Error", "p value", "Odds")]
   
   summary_table$Value <- round(summary_table$Value, 3)
   summary_table$`Std. Error` <- round(summary_table$`Std. Error`, 3)
