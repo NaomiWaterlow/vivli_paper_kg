@@ -98,18 +98,27 @@ names(supp.lab) <- c("age", "source","who")
 ## Plot to explore if correlation
 ## Remove low numbers
 table(n_index_df$Sum_N)
+colnames(n_index_df) <- c("antibiotic", "organism_clean","Gender","Sum_N","max_index","grouping")
+colnames(correlation_result) <- c("grouping", "organism_clean","Gender","correlation_coefficient","vjust")
 
-ggplot(n_index_df %>% filter(Sum_N > 100), aes(x= Sum_N, y = max_index, color = gender))+
-  facet_grid(grouping ~ organism_clean, labeller = labeller(grouping = supp.lab))+
-  geom_point()+
-  geom_smooth(method='lm')+
+ggplot(n_index_df %>% filter(Sum_N > 100), aes(x= Sum_N, y = max_index, color = Gender, shape=Gender)) +
+  facet_grid(grouping ~ organism_clean, labeller = labeller(grouping = supp.lab)) +
+  geom_point() +
+  geom_smooth(method='lm',aes(fill=Gender))+
+  scale_color_manual(values=c("#7FB069","#805D93")) +
+  scale_fill_manual(values=c("#7FB069","#805D93")) +
+  scale_shape_manual(values=c(16,1)) +
   scale_x_continuous(limits = c(0,100000))+
   geom_text(data = correlation_result,
-            aes(x = 82000, y = 0.7, label = paste("R = ", round(correlation_coefficient, digits = 3)), vjust = vjust),
-            size = 3
+            aes(x = 90000, y = 0.69, label = paste("R = ", round(correlation_coefficient, digits = 3)), vjust = vjust),
+            size = 2
             ,show.legend = FALSE
-            )+
-  xlab("Number of samples")+
-  ylab("Maximum difference in MIC across groupings")+
-  scale_color_discrete(name = "Gender", labels = c("female","male")) + 
-  theme(strip.text.x = element_text(face = "italic"))
+            ) +
+  xlab("Number of samples") +
+  ylab("Maximum difference in MIC across groupings") +
+  theme(strip.text.x = element_text(face = "italic"),
+        axis.text.y = element_text(size = 7),
+        axis.text.x = element_text(size = 7))
+
+ggsave(paste0("plots/", "figure2_indexgroupings.pdf"), height = 7, width = 10)
+  
