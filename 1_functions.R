@@ -1,5 +1,5 @@
 ##### Functions 
-characteristic <- "sex"# "age" #  "who_region
+#characteristic <- "sex"# "age" #  "who_region
 
 ### Plot to give initial exploration plots and csv on index values
 plot_generation_MICAG <- function(data, bacteria, groupings, gender_options = T){
@@ -15,7 +15,7 @@ plot_generation_MICAG <- function(data, bacteria, groupings, gender_options = T)
   for(characteristic in groupings){
     for (include_gender in gender_options){
       
-      print(paste0("Running for ", characteristic))
+      print(paste0("Running for ", characteristic, ", Include gender? ", include_gender))
       
       # make sure there's a folder to store the plots
       dir.create(file.path("plots"), showWarnings = FALSE)
@@ -25,7 +25,7 @@ plot_generation_MICAG <- function(data, bacteria, groupings, gender_options = T)
       output_plot <- c()
       
       # Look at patterns in the bacteria with or without gender
-      if(include_gender == F){
+      if(include_gender == "F"){
         for(j in bacteria){
           data_sub <- data[organism_clean == j]
           
@@ -88,11 +88,11 @@ plot_generation_MICAG <- function(data, bacteria, groupings, gender_options = T)
         write.csv(output_plot, paste0("plots/",characteristic, "output.csv"))
       }
       
-      if(include_gender == T){
+      if(include_gender == "T"){
         
         for(j in bacteria){
           
-          
+          print(paste0("bacteria ",j))
           data_sub <- data[organism_clean == j]
           # vector for storing relevant drugs and plots
           # vector for storing relevant drugs and plots
@@ -186,7 +186,7 @@ plot_generation_bytime_MICAG <- function(data, bacteria, groupings, gender_optio
       if(include_gender == "F"){
         print("running for no gender")
         for(j in bacteria){
-          data_sub <- data[organism == j]
+          data_sub <- data[organism_clean == j]
           
           # vector for storing relevant drugs and plots
           drugs <- unique(data_sub$antibiotic)
@@ -230,14 +230,14 @@ plot_generation_bytime_MICAG <- function(data, bacteria, groupings, gender_optio
                 guides(alpha = "none")
             }
             ### Output 
-            output_plot <- rbind(output_plot, for_plot %>% mutate(antibiotic = i, organism = j))
+            output_plot <- rbind(output_plot, for_plot %>% mutate(antibiotic = i, organism_clean = j))
             
             ## Explore index
             if(characteristic == "key_source"){
               for_plot <- for_plot %>% filter(!key_source == "") # remove this from index comparison
             }
             suppressWarnings( index_store <- rbind(index_store, for_plot %>% group_by(MIC) %>%
-                                                     mutate(dff = diff(range(cumulative_sum))) %>% mutate(antibiotic = i, organism = j)))
+                                                     mutate(dff = diff(range(cumulative_sum))) %>% mutate(antibiotic = i, organism_clean = j)))
             #warnings if no difference
             
             plot_store[[i]] <- temp
@@ -256,7 +256,7 @@ plot_generation_bytime_MICAG <- function(data, bacteria, groupings, gender_optio
       if(include_gender == "T"){
         for(j in bacteria_to_use){
           
-          data_sub <- data[organism == j]
+          data_sub <- data[organism_clean == j]
           # vector for storing relevant drugs and plots
           # vector for storing relevant drugs and plots
           drugs <- unique(data_sub$antibiotic)
@@ -299,7 +299,7 @@ plot_generation_bytime_MICAG <- function(data, bacteria, groupings, gender_optio
                 
             }
             ### Output 
-            output_plot <- rbind(output_plot, for_plot %>% mutate(antibiotic = i, organism = j))
+            output_plot <- rbind(output_plot, for_plot %>% mutate(antibiotic = i, organism_clean = j))
             
             ## Explore index
             if(characteristic == "key_source"){
@@ -307,7 +307,7 @@ plot_generation_bytime_MICAG <- function(data, bacteria, groupings, gender_optio
             }
             
             suppressWarnings(index_store <- rbind(index_store, for_plot %>% group_by(MIC,year, gender) %>% 
-                                                    mutate(dff = diff(range(cumulative_sum))) %>% mutate(antibiotic = i, organism = j)))
+                                                    mutate(dff = diff(range(cumulative_sum))) %>% mutate(antibiotic = i, organism_clean = j)))
             # warning when no difference
             
             plot_store[[i]] <- temp

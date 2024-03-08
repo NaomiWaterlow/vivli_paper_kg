@@ -19,7 +19,7 @@ characteristics <- c("age_group", "key_source") #Can run additional options:
 #
 
 ### Run initial plot and index generation
-plot_generation_MICAG(full_data, bacteria_to_use, characteristics) 
+plot_generation_MICAG(full_data, bacteria_to_use, characteristics, gender_options = c("F","T")) 
 
 ### Run by time 
-plot_generation_bytime_MICAG(full_data, bacteria_to_use, characteristics) 
+plot_generation_bytime_MICAG(full_data, bacteria_to_use, characteristics, gender_options = c("F","T")) 
