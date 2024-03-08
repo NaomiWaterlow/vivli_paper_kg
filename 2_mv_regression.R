@@ -75,3 +75,69 @@ dim(high_combos) # 15
 write.csv(store_nhc, "mv_output/store_nhighcombos.csv")
 store_nhc %>% pivot_wider(id_cols = "parameter")
 
+
+## The code below was designed to generate figures for the nhighcombos output
+# Read in data of interest
+mv_df <- read.csv("mv_output/store_nhighcombos.csv")
+
+# Split by antibiotic first, then generate dataframes for each subgrouping category, as figures will first be 
+# split by antibiotic, then by grouping category, then each bacterial species will be plotted on the same
+# graphs using different colours.
+
+## Grab the first 3 letters of the parameters column values and put into a new column named "grouping"
+mv_df$grouping <- substr(mv_df$parameter, 1, 3)
+
+mv_df$sig <- ifelse(mv_df$p.value < 0.001, "***", ifelse(mv_df$p.value<0.01, "**", ifelse(mv_df$p.value<0.05, "*", "")))
+
+## Split the mv_df into the different antibiotics
+antibiotic_split <- split(mv_df, mv_df$antibiotic)
+
+## Split each of the antibiotic dataframes by the grouping value
+final_dataframes <- lapply(antibiotic_split, function(sub_df) {
+  split(sub_df, sub_df$grouping)
+})
+
+# Convert each dataframe in the list to separate objects in the global environment
+for (antibiotic_name in names(final_dataframes)) {
+  for (group_name in names(final_dataframes[[antibiotic_name]])) {
+    obj_name <- paste(antibiotic_name, group_name, sep = "_")
+    assign(obj_name, final_dataframes[[antibiotic_name]][[group_name]], envir = .GlobalEnv)
+  }
+}
+
+
+## Remove the grouping variable from each parameter value:
+levofloxacin_age$parameter <- sub("^age_group", "", levofloxacin_age$parameter)
+cefepime_age$parameter <- sub("^age_group", "", cefepime_age$parameter)
+doripenem_age$parameter <- sub("^age_group", "", doripenem_age$parameter)
+levofloxacin_gen$parameter <- sub("^gender", "", levofloxacin_gen$parameter)
+cefepime_gen$parameter <- sub("^gender", "", cefepime_gen$parameter)
+doripenem_gen$parameter <- sub("^gender", "", doripenem_gen$parameter)
+levofloxacin_key$parameter <- sub("^key_source", "", levofloxacin_key$parameter)
+cefepime_key$parameter <- sub("^key_source", "", cefepime_key$parameter)
+doripenem_key$parameter <- sub("^key_source", "", doripenem_key$parameter)
+levofloxacin_who$parameter <- sub("^who_region", "", levofloxacin_who$parameter)
+cefepime_who$parameter <- sub("^who_region", "", cefepime_who$parameter)
+doripenem_who$parameter <- sub("^who_region", "", doripenem_who$parameter)
+
+require("ggplot2")
+require(scales)
+
+ggplot(levofloxacin_age, aes(x= parameter, y=Odds, color = bacteria, group = bacteria))+
+  geom_hline(yintercept = 1, color = "black")+
+  geom_line(size = 1)+
+  geom_point(size = 2)+
+  theme_bw()+
+  scale_y_continuous(expand= c(0,0), limits = c(0,2.5))+
+  xlab("Age Group")+
+  labs(color = "Species")+
+  theme(text = element_text(size = 12), axis.text = element_text(size = 12),
+        legend.text = element_text(size = 12))+
+  scale_color_discrete(labels = label_wrap(10))+
+  guides(color = guide_legend(keyheight = 2.5))+
+  geom_text(
+    data = levofloxacin_age,
+    aes(x= parameter, y=max(Odds)+0.2, color = bacteria, label = sig),
+    position = position_dodge(), size = 7)
+
+  

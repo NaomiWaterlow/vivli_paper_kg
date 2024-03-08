@@ -1,0 +1,13 @@
+"","parameter","Value","Std. Error","p value","Odds"
+"1","age_group0 to 2 Years",-0.098,0.042,0.019,0.907
+"2","age_group3 to 12 Years",-0.222,0.042,0,0.801
+"3","age_group13 to 18 Years",-0.273,0.058,0,0.761
+"4","age_group65 to 84 Years",-0.104,0.018,0,0.901
+"5","age_group85 and Over",-0.282,0.031,0,0.754
+"6","genderm",0.184,0.016,0,1.203
+"7","key_sourceblood",0.02,0.036,0.571,1.021
+"8","key_sourcegastro",0.13,0.051,0.011,1.138
+"9","key_sourcerespiratory",-0.025,0.029,0.39,0.976
+"10","key_sourceurine",0.131,0.034,0,1.14
+"11","key_sourcewound",-0.05,0.031,0.105,0.951
+"12","year_scaled",-0.064,0.003,0,0.938
