@@ -128,8 +128,8 @@ require(viridis)
 
 levo_age <- ggplot(levofloxacin_age, aes(x= parameter, y=Odds, color = bacteria, group = bacteria))+
   geom_hline(yintercept = 1, color = "black")+
-  geom_line(size = 1)+
-  geom_point(size = 2)+
+  geom_line(size = 2)+
+  geom_point(size = 4)+
   theme_bw()+
   scale_y_continuous(expand= c(0,0), limits = c(0,2.5))+
   xlab("Age Group")+
@@ -145,7 +145,7 @@ levo_age <- ggplot(levofloxacin_age, aes(x= parameter, y=Odds, color = bacteria,
 
 levo_gen <- ggplot(levofloxacin_gen, aes(x= parameter, y=Odds, color = bacteria, group = bacteria))+
   geom_hline(yintercept = 1, color = "black")+
-  geom_point(size = 2)+
+  geom_point(size = 4)+
   theme_bw()+
   scale_y_continuous(expand= c(0,0), limits = c(0,1.7))+
   xlab("Gender")+
@@ -161,7 +161,7 @@ levo_gen <- ggplot(levofloxacin_gen, aes(x= parameter, y=Odds, color = bacteria,
 
 levo_key <- ggplot(levofloxacin_key, aes(x= parameter, y=Odds, color = bacteria, group = bacteria))+
   geom_hline(yintercept = 1, color = "black")+
-  geom_point(size = 2)+
+  geom_point(size = 4)+
   theme_bw()+
   scale_y_continuous(expand= c(0,0), limits = c(0,2.3))+
   xlab("Infection Site")+
@@ -177,9 +177,9 @@ levo_key <- ggplot(levofloxacin_key, aes(x= parameter, y=Odds, color = bacteria,
 
 levo_who <- ggplot(levofloxacin_who, aes(x= parameter, y=Odds, color = bacteria, group = bacteria))+
   geom_hline(yintercept = 1, color = "black")+
-  geom_point(size = 2, position = position_dodge(width = 0.1))+
+  geom_point(size = 4, position = position_dodge(width = 0.1))+
   theme_bw()+
-  scale_y_continuous(expand= c(0,0), limits = c(0,5.5))+
+  scale_y_continuous(expand= c(0,0), limits = c(0,5.6))+
   xlab("WHO region")+
   labs(color = "Species")+
   theme(text = element_text(size = 12), axis.text = element_text(size = 12),
@@ -188,7 +188,7 @@ levo_who <- ggplot(levofloxacin_who, aes(x= parameter, y=Odds, color = bacteria,
   scale_color_viridis_d(option = "D", labels = label_wrap(10))+
   geom_text(
     data = levofloxacin_who,
-    aes(x= parameter, y=max(Odds)+0.4, color = bacteria, label = sig),
+    aes(x= parameter, y=max(Odds)+0.6, color = bacteria, label = sig),
     position = position_dodgev(height = 0.8), size = 7, show.legend = FALSE)+
   guides(color = guide_legend(keyheight = 2.5))
 
@@ -197,8 +197,3 @@ require("patchwork")
 combined_plot <- (levo_age | levo_key / levo_who/levo_gen)+plot_layout(guides = "collect",)
 
 ggsave("plots/levofloxacin_mv_results.png", combined_plot, height = 10, width = 19)
-
-ggsave("plots/levofloxacin_age_group_mv_results.png", levo_age, height = 6, width = 8)
-ggsave("plots/levofloxacin_who_region_mv_results.png", levo_who, height = 6, width = 8)
-
-              
