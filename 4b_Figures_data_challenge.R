@@ -1,6 +1,6 @@
 # MICAG: This script creates the figures used in the report as part of the Data Challenge
 
-library(data.table);library(ggplot2);library(cowplot); library(patchwork); library(tidyverse)
+library(data.table);library(ggplot2);library(cowplot); library(patchwork); library(tidyverse); library(viridis)
 theme_set(theme_bw(base_size = 16))
 # read in the data
 #full_data <- as.data.table(read.csv("data/full_data.csv"))
@@ -10,7 +10,6 @@ theme_set(theme_bw(base_size = 16))
 # Which characteristics explored? 
 characteristics <- c("age_group", "key_source") # "age_group"
 
-############################# Get data
 ############################# Get data  ######
 output_data <- c()
 output_index <- c()
@@ -57,6 +56,7 @@ for(i in 1:nrow(combinations)){
                                               antibiotic == combinations[i,"antibiotic"])) 
 }
 
+#################################### Age only  ######
 plot_age <- plot_data %>% filter(charac == "age_group")
 plot_age$charac_value <- factor(plot_age$charac_value, 
                                 levels = c("0 to 2 Years","3 to 12 Years", "13 to 18 Years",
@@ -104,7 +104,7 @@ g2 <- ggplot(output_index %>% filter(charac == "age_group",n_big > 3),
   theme(legend.text = element_text(face = "italic"))
 ggsave("plots/index_age_sex.pdf")
 
-######################## Source
+######################## Source  ######
 ggplot(plot_data %>% filter(charac == "key_source", gender == "N"), 
        aes(x=MIC, y = cumulative_sum, group = charac_value)) + 
   geom_line(aes(col = charac_value)) + 
@@ -140,7 +140,7 @@ g4 <- ggplot(output_index %>% filter(charac == "key_source",n_big > 3),
   theme(legend.text = element_text(face = "italic"))
 ggsave("plots/index_key_source.pdf")
 
-#### Figure 2
+#### Index figure
 a <- g2 + g4 +  theme(legend.position = "none")
 b <- g1 + g3 + plot_layout(guides = "collect") & theme(legend.position = "bottom")
 a / b + plot_layout(heights = c(1, 1.8)) + plot_annotation(tag_levels = 'A')
@@ -183,10 +183,10 @@ ggplot(plot_age %>% filter(gender == "N", antibiotic == "levofloxacin", organism
 
 
 
-###### Final figure 
-##### OVER TIME: OPTIONAL
+
+##### OVER TIME ######
 # read in the data
-############################# Get data
+### Get data
 output_datat <- c()
 
 for(i in characteristics){
@@ -202,7 +202,7 @@ for(i in characteristics){
                                             "antibiotic", "organism"))
 }
 
-### EXAMPLES
+### Bug/drug combos
 combinations <- as.data.frame(rbind(c("Staphylococcus aureus", "levofloxacin"),
                                     c("Escherichia coli", "levofloxacin"),
                                     c("Staphylococcus aureus", "meropenem"),
@@ -234,7 +234,8 @@ sum_index_gender_yr <- index_comparison_gender_yr %>%
   summarise(mx = max(df_mic), # Max diff for this bug_drug 
             n_big = sum(unique(df_mic) > 0.1)) # Count how many MIC have > 10% diffs
 
-###### heat map
+###### heat maps of index over time 
+# Plot with pre-selected bug-drug combos
 gg <- sum_index_gender_yr %>% filter(n_big > 3)
 ggplot(gg, aes(x=year, y = antibiotic, z = mx)) + 
   geom_tile(aes(fill = mx)) + 
@@ -244,16 +245,48 @@ ggplot(gg, aes(x=year, y = antibiotic, z = mx)) +
   theme(strip.text = element_text(face = "italic"))
 ggsave(paste0("plots/", characteristic, "index_time_heat_map_allbac.pdf"), height = 7, width = 15)
 
+# Plot with only only 2 big-drug combos
+gg$antibiotic <- tools::toTitleCase(as.character(gg$antibiotic)) 
+gg$antibiotic <- factor(gg$antibiotic, levels=rev(unique(gg$antibiotic)))
+
 g1t <- ggplot(gg %>% filter(organism %in% c("Staphylococcus aureus","Escherichia coli")), aes(x=year, y = antibiotic, z = mx)) + 
   geom_tile(aes(fill = mx)) + 
   facet_grid(gender~organism) + 
   ggtitle("A") + 
-  labs(x = "Year")+
-  scale_fill_continuous("Maximum\nindex") + 
-  theme(strip.text = element_text(face = "italic"))
-ggsave(paste0("plots/", characteristic, "index_time_heat_map.pdf"), height = 7, width = 15)
+  labs(x = "Year", y = "Antibiotics")+
+  scale_fill_viridis("Maximum\nindex", option = "D", ) +
+  theme(strip.text = element_text(face = "italic", size = 10),
+        axis.text.y = element_text(size=10),
+        axis.text.x = element_text(size=10))
+ggsave(paste0("plots/", characteristic, "index_time_heat_map.pdf"), height = 10, width = 10)
 
-###### Over time
+
+
+###### isolates per time plot
+samples_store <- data.table(read.csv(paste0("plots/year_gender_",characteristic, "samples_store.csv")))
+
+samples_store$age_group <- factor(samples_store$age_group, 
+                                  levels = c("0 to 2 Years","3 to 12 Years", "13 to 18 Years",
+                                             "19 to 64 Years", "65 to 84 Years", "85 and Over"))
+title_to_use <- expression(paste("B - ", italic("S. aureus"), "- levofloxacin"))
+
+g_samples <- ggplot(samples_store, aes(x=Year, y=N, fill = age_group))+
+  geom_col()+
+  labs(x = "Year",
+       y = "Number of samples",
+       fill = "Age group", 
+       title = title_to_use) +
+  scale_fill_viridis(discrete = TRUE, option = "H") +
+  facet_grid(MIC~Gender)  + 
+  theme(strip.text = element_text(face = "italic", size = 8),
+        axis.text.y = element_text(size=10),
+        axis.text.x = element_text(size=10))
+
+g1t + g_samples
+ggsave(paste0("plots/", characteristic, "time_figure3.pdf"), height = 10, width = 20)
+
+
+###### Line plots over time ######
 plot_datat_staphlevo <- plot_datat %>% filter(antibiotic == "levofloxacin",
                                               organism == "Staphylococcus aureus", 
                                               charac == characteristic) %>%
@@ -279,28 +312,8 @@ g1t + g2t & theme(legend.position = "bottom")
 ggsave(paste0("plots/", characteristic, "time_figure.pdf"), height = 7, width = 15)
 
 
-###### time plot
-samples_store <- data.table(read.csv(paste0("plots/year_gender_",characteristic, "samples_store.csv")))
 
-samples_store$age_group <- factor(samples_store$age_group, 
-                                  levels = c("0 to 2 Years","3 to 12 Years", "13 to 18 Years",
-                                             "19 to 64 Years", "65 to 84 Years", "85 and Over"))
-title_to_use <- expression(paste("B: ", italic("S. aureus"), ", levofloxacin"))
-
-g_samples <- ggplot(samples_store, aes(x=Year, y=N, fill = age_group))+
-  geom_col(col = "black")+
-  labs(x = "Year",
-       y = "Number of samples",
-       fill = "Age group", 
-       title = title_to_use)+
-  facet_grid(MIC~Gender)  + 
-  theme(strip.text = element_text(size = 10))
-
-g1t + g_samples
-ggsave(paste0("plots/", characteristic, "time2_figure.pdf"), height = 12, width = 22)
-
-
-###### time plot for N and prop for specific bug-drug combos
+###### OPTIONAL: time plot for N and prop for specific bug-drug combos ######
 
 full_data <- as.data.table(read.csv("data/full_data.csv"))
 bacteria_to_use <- unique(full_data$organism) 
