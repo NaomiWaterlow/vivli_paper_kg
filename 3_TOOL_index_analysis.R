@@ -17,25 +17,25 @@ for(characteristic in characteristics){
   
   # Explore data: how many high level and extract max level
   sum_index_gender <- index_comparison_gender %>% 
-    group_by(antibiotic, organism, gender, MIC) %>%
+    group_by(antibiotic, organism_clean, gender, MIC) %>%
     summarise(df_mic = max(dff)) %>% # Get one value per MIC ##### substantial n differences: add , total = sum(Total) here? 
-    group_by(antibiotic, organism, gender) %>%
+    group_by(antibiotic, organism_clean, gender) %>%
     summarise(mx = max(df_mic), # Max diff for this bug_drug 
               n_big = sum(unique(df_mic) > 0.1)) # Count how many MIC have > 10% diffs
   sum_index <- index_comparison %>%
-    group_by(antibiotic, organism, MIC) %>%
+    group_by(antibiotic, organism_clean, MIC) %>%
     summarise(df_mic = max(dff)) %>% # Get one value per MIC 
-    group_by(antibiotic, organism) %>%
+    group_by(antibiotic, organism_clean) %>%
     summarise(mx = max(df_mic), # Max diff for this bug_drug 
               n_big = sum(unique(df_mic) > 0.1)) # Count how many MIC have > 10% diffs
   
   # Explore index separately by with / without gender
-  g1 <- ggplot(sum_index_gender %>% filter(n_big > 3), aes(y=antibiotic, x = mx, group = interaction(organism, gender))) + geom_point(aes(col = organism, pch = gender)) + 
+  g1 <- ggplot(sum_index_gender %>% filter(n_big > 3), aes(y=antibiotic, x = mx, group = interaction(organism_clean, gender))) + geom_point(aes(col = organism_clean, pch = gender)) + 
     ggtitle(characteristic) + 
     scale_x_continuous("Maximum difference in MIC\nacross groupings")
   ggsave(paste0("plots/", characteristic, "index_all.pdf"), height = 10, width = 7)
   
-  g2 <- ggplot(sum_index %>% filter(n_big > 3), aes(y=antibiotic, x = mx, group = organism)) + geom_point(aes(col = organism)) + 
+  g2 <- ggplot(sum_index %>% filter(n_big > 3), aes(y=antibiotic, x = mx, group = organism_clean)) + geom_point(aes(col = organism_clean)) + 
     scale_x_continuous("Maximum difference in MIC\nacross groupings")
   
   g1 / g2 + plot_layout(guides = "collect")& theme(legend.position = 'bottom')
@@ -44,8 +44,8 @@ for(characteristic in characteristics){
   # Combine with and without gender
   plot_index <- rbind(sum_index_gender, sum_index %>% mutate(gender = "N"))
   
-  ggplot(plot_index %>% filter(n_big > 3), aes(x=antibiotic, y = mx, group = interaction(organism, gender))) + 
-    geom_point(aes(col = organism, pch = gender), size = 3) + 
+  ggplot(plot_index %>% filter(n_big > 3), aes(x=antibiotic, y = mx, group = interaction(organism_clean, gender))) + 
+    geom_point(aes(col = organism_clean, pch = gender), size = 3) + 
     theme(axis.text.x = element_text(angle = 90, vjust = 0.5)) + 
     ggtitle(characteristic) + 
     scale_y_continuous(limits = c(0,0.4), "Maximum difference in MIC\nacross groupings") + 
@@ -60,11 +60,11 @@ for(characteristic in characteristics){
   ### Stats for report: what bacteria are in the final differences? 
   high_all <- plot_index %>% filter(n_big > 3)
   
-  round(100*table(high_all%>% ungroup() %>% filter(gender == "N") %>% dplyr::select(organism)) / dim(high_all%>% ungroup() %>% filter(gender == "N"))[1],0)
+  round(100*table(high_all%>% ungroup() %>% filter(gender == "N") %>% dplyr::select(organism_clean)) / dim(high_all%>% ungroup() %>% filter(gender == "N"))[1],0)
   # In men
-  round(100*table(high_all %>% ungroup() %>% filter(gender == "m") %>% dplyr::select(organism)) / dim(high_all %>% filter(gender=="m"))[1],0)
+  round(100*table(high_all %>% ungroup() %>% filter(gender == "m") %>% dplyr::select(organism_clean)) / dim(high_all %>% filter(gender=="m"))[1],0)
   # In women
-  round(100*table(high_all %>% ungroup() %>% filter(gender == "f") %>% dplyr::select(organism)) / dim(high_all %>% filter(gender=="f"))[1],0)
+  round(100*table(high_all %>% ungroup() %>% filter(gender == "f") %>% dplyr::select(organism_clean)) / dim(high_all %>% filter(gender=="f"))[1],0)
   
   ##### OVER TIME 
   # read in the data
@@ -73,37 +73,37 @@ for(characteristic in characteristics){
   
   # Explore data: how many high level and extract max level over time 
   sum_index_gender_yr <- index_comparison_gender_yr %>% 
-    group_by(antibiotic, organism, gender, MIC, year) %>%
+    group_by(antibiotic, organism_clean, gender, MIC, year) %>%
     summarise(df_mic = max(dff)) %>% # Get one value per MIC 
-    group_by(antibiotic, organism, gender, year) %>%
+    group_by(antibiotic, organism_clean, gender, year) %>%
     summarise(mx = max(df_mic), # Max diff for this bug_drug 
               n_big = sum(unique(df_mic) > 0.1)) # Count how many MIC have > 10% diffs
   sum_index_yr <- index_comparison_yr %>%
-    group_by(antibiotic, organism, MIC, year) %>%
+    group_by(antibiotic, organism_clean, MIC, year) %>%
     summarise(df_mic = max(dff)) %>% # Get one value per MIC 
-    group_by(antibiotic, organism, year) %>%
+    group_by(antibiotic, organism_clean, year) %>%
     summarise(mx = max(df_mic), # Max diff for this bug_drug 
               n_big = sum(unique(df_mic) > 0.1)) # Count how many MIC have > 10% diffs
   
   # Exploratory plots: hard to see past data issues and heterogeneity
-  ggplot(sum_index_gender_yr %>% filter(n_big > 3), aes(x=antibiotic, y = mx, group = interaction(organism, gender))) + 
-    geom_point(aes(col = organism, pch = gender)) + 
+  ggplot(sum_index_gender_yr %>% filter(n_big > 3), aes(x=antibiotic, y = mx, group = interaction(organism_clean, gender))) + 
+    geom_point(aes(col = organism_clean, pch = gender)) + 
     facet_wrap(~year) + 
     theme(axis.text.x = element_text(angle = 90, vjust = 0.5)) + 
     ggtitle(characteristic) + 
     scale_y_continuous("Maximum difference in MIC\nacross groupings")
   
-  ggplot(sum_index_gender_yr %>% filter(n_big > 3), aes(x=antibiotic, y = mx, group = interaction(organism, gender))) + 
+  ggplot(sum_index_gender_yr %>% filter(n_big > 3), aes(x=antibiotic, y = mx, group = interaction(organism_clean, gender))) + 
     geom_point(aes(col = year, pch = gender)) + 
-    facet_wrap(~organism) + 
+    facet_wrap(~organism_clean) + 
     theme(axis.text.x = element_text(angle = 90, vjust = 0.5)) + 
     ggtitle(characteristic) + 
     scale_y_continuous("Maximum difference in MIC\nacross groupings")
   
   ggplot(sum_index_gender_yr, 
-         aes(x=antibiotic, y = mx, group = interaction(organism, gender, year))) + 
+         aes(x=antibiotic, y = mx, group = interaction(organism_clean, gender, year))) + 
     geom_line(aes(col = factor(year))) + 
-    facet_grid(gender~organism) + 
+    facet_grid(gender~organism_clean) + 
     theme(axis.text.x = element_text(angle = 90, vjust = 0.5)) + 
     ggtitle(characteristic) + 
     scale_y_continuous("Maximum difference in MIC\nacross groupings")
@@ -112,15 +112,15 @@ for(characteristic in characteristics){
   gg <- sum_index_gender_yr %>% filter(n_big > 3)
   ggplot(gg, aes(x=year, y = antibiotic, z = mx)) + 
     geom_tile(aes(fill = mx)) + 
-    facet_grid(gender~organism) + 
+    facet_grid(gender~organism_clean) + 
     ggtitle(characteristic) + 
     scale_fill_continuous("Maximum\nindex") + 
     theme(strip.text = element_text(face = "italic"))
   ggsave(paste0("plots/", characteristic, "index_time_heat_map_allbac.pdf"), height = 7, width = 15)
   
-  ggplot(gg %>% filter(organism %in% c("Staphylococcus aureus","Escherichia coli")), aes(x=year, y = antibiotic, z = mx)) + 
+  ggplot(gg %>% filter(organism_clean %in% c("Staphylococcus aureus","Escherichia coli")), aes(x=year, y = antibiotic, z = mx)) + 
     geom_tile(aes(fill = mx)) + 
-    facet_grid(gender~organism) + 
+    facet_grid(gender~organism_clean) + 
     ggtitle(characteristic) + 
     scale_fill_continuous("Maximum\nindex") + 
     theme(strip.text = element_text(face = "italic"))
