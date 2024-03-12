@@ -22,9 +22,9 @@ for(i in characteristics){
   output2 <- read.csv(paste0("plots/",i, "output.csv")) %>% mutate(gender = "N", charac = i) %>% rename("charac_value" = i)
   output_data <- rbind(rbind(output_data, 
                              output1 %>% dplyr::select("gender", "MIC", "charac", "charac_value", "N", "Total", "prop", "cumulative_sum", 
-                                                "antibiotic", "organism")), 
+                                                "antibiotic", "organism_clean")), 
                        output2 %>% dplyr::select("gender", "MIC", "charac", "charac_value", "N", "Total", "prop", "cumulative_sum", 
-                                          "antibiotic", "organism"))
+                                          "antibiotic", "organism_clean"))
   
   ###### Index comparison
   index_comparison <- read.csv(paste0("plots/", i, "index.csv")) %>% mutate(charac = i)
@@ -39,7 +39,7 @@ combinations <- as.data.frame(rbind(c("Staphylococcus aureus", "levofloxacin"),
                                     c("Escherichia coli", "meropenem"),
                                     c("Staphylococcus aureus", "ampicillin"),
                                     c("Escherichia coli", "ampicillin")))
-colnames(combinations) <- c("organism","antibiotic")
+colnames(combinations) <- c("organism_clean","antibiotic")
 
 
 # Grab just the data wanted for the examples
@@ -48,7 +48,7 @@ plot_index <- c()
 
 for(i in 1:nrow(combinations)){
   plot_data <- rbind(plot_data,
-                     output_data %>% filter(organism == combinations[i,"organism"],
+                     output_data %>% filter(organism == combinations[i,"organism_clean"],
                                             antibiotic == combinations[i,"antibiotic"]))
   
   plot_index <- rbind(plot_index, 
