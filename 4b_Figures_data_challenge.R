@@ -136,7 +136,8 @@ g3 <- ggplot(plot_data %>% filter(charac == "key_source", !charac_value == "", !
  # scale_color_discrete("Infection site") + 
   scale_linetype_discrete("Sex", labels = c("Female","Male"), breaks = c("f","m")) + 
   theme(legend.position = "bottom", strip.text = element_text(face = "italic")) + 
-  scale_colour_viridis("Infection site", option="D", discrete = TRUE)
+  scale_colour_viridis("Infection site", option="D", discrete = TRUE) + 
+  guides(color = guide_legend(override.aes = list(size = 2))) 
 ggsave("plots/source_sex.pdf")
 
 g4 <- ggplot(output_index %>% filter(charac == "key_source",n_big > 3), 
@@ -149,7 +150,7 @@ g4 <- ggplot(output_index %>% filter(charac == "key_source",n_big > 3),
   scale_shape_discrete("Sex",breaks = c("f","m","N"), labels = c("Female","Male","Both")) + 
   geom_vline(xintercept = c(0.1,0.2,0.3), lty = "dashed") + 
   theme(legend.text = element_text(face = "italic")) + 
-  scale_colour_viridis("Organism", option="D", discrete = TRUE)
+  scale_colour_viridis("Organism", option="D", discrete = TRUE) 
 ggsave("plots/index_key_source.pdf")
 
 #### Index figure
@@ -169,14 +170,15 @@ top_plot <- plot_grid(g1 + theme(legend.position = "none") ,
                       g3 + theme(legend.position = "none"), 
                       labels = c("A", "B"), 
                       ncol = 2)
-middle_plot <- plot_grid(legend, labels = "")
+middle_plot <- plot_grid(legend1, labels = "")
+middle_plot2 <- plot_grid(legend, labels = "")
 bottom_plot <- plot_grid(g2 + theme(legend.position = "none") , 
                          g4 + theme(legend.position = "none"), 
                           labels = c("C", "D"), 
                          ncol = 2 )
 very_bottom <- plot_grid(legend2, legend3, rel_widths = c(0.6,0.5))
-together <- plot_grid(top_plot, middle_plot, bottom_plot, very_bottom, ncol =1,
-                      rel_heights = c(1,0.1,1.4, 0.2)) + 
+together <- plot_grid(top_plot,very_bottom, middle_plot2,  bottom_plot, middle_plot, ncol =1,
+                      rel_heights = c(1,0.1,0.05, 1.4, 0.2)) + 
   theme(plot.background = element_rect(fill = "white", colour = NA))
 print(together)
 ggsave("plots/fig2.tiff", width = 20, height = 11)
