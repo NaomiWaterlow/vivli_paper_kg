@@ -6,11 +6,11 @@ library(data.table);library(ggplot2);library(cowplot)
 full_data <- as.data.table(read.csv("data/full_data.csv"))
 
 # specify which bugs are of interest
-bacteria_to_use <- unique(full_data$organism) 
+bacteria_to_use <- unique(full_data$organism_clean) 
 
 ######*********************** SPECIFY ************************#################
 ## What characteristic to look at. (Note: Must match column name)
-characteristics <- c("age_group", "key_source") #Can run additional options: 
+characteristics <- c("age_group", "key_source", "who_region") #Can run additional options: 
 #"key_source" # "age_group" # country # income_grp #who_region
 #
 
@@ -33,7 +33,7 @@ for(characteristic in characteristics){
     # Look at patterns in the bacteria with or without gender
     if(include_gender == F){
       for(j in bacteria_to_use){
-        data_sub <- full_data[organism == j]
+        data_sub <- full_data[organism_clean == j]
         
         # vector for storing relevant drugs and plots
         drugs <- unique(data_sub$antibiotic)
@@ -64,29 +64,36 @@ for(characteristic in characteristics){
           # store plot
           for_plot <- for_plot[N>100]
           if(nrow(for_plot)>0){
-            temp<- ggplot(for_plot[N>=100], aes(x= MIC, y =cumulative_sum, colour = !!sym(characteristic))) + 
+            p <- ggplot(for_plot[N>=100], aes(x= MIC, y =cumulative_sum, colour = !!sym(characteristic))) + 
               geom_line()+
               labs(title = paste0("MIC - ", i, paste0(". Tot samples = ", tot_samps)), x = "MIC value", 
                    y = paste0("cumulative proportion of samples by ", characteristic), 
                    colour = characteristic) + 
               scale_x_log10() + 
-              theme_linedraw() 
+              theme_linedraw()
+            temp <- p + theme(legend.position="none")
           }
+          legend_b <- get_legend(
+            # create some space to the left of the legend
+            p + theme(legend.box.margin = margin(0, 0, 0, 12))
+          )
+          
           ### Output 
-          output_plot <- rbind(output_plot, for_plot %>% mutate(antibiotic = i, organism = j))
+          output_plot <- rbind(output_plot, for_plot %>% mutate(antibiotic = i, organism_clean = j))
           
           ## Explore index
           if(characteristic == "key_source"){
             for_plot <- for_plot %>% filter(!key_source == "") # remove this from index comparison
           }
           suppressWarnings(index_store <- rbind(index_store, for_plot %>% group_by(MIC) %>% 
-                                 mutate(dff = diff(range(cumulative_sum))) %>% mutate(antibiotic = i, organism = j)))
+                                                  mutate(dff = diff(range(cumulative_sum))) %>% mutate(antibiotic = i, organism_clean = j)))
           # warning when no difference
           plot_store[[i]] <- temp
         }
+        plot_store[[length(plot_store)+1]] <- legend_b
         
         tiff(paste0("plots/",j , "_", characteristic, "_MICs.tiff"), width = 2500, height = 1500)
-        print(cowplot::plot_grid(plotlist =  plot_store) )
+        print(cowplot::plot_grid(plotlist =  plot_store))
         dev.off()
         
       }
@@ -98,7 +105,7 @@ for(characteristic in characteristics){
       # look at just one bug for now (might loop this later!)
       for(j in bacteria_to_use){
         
-        data_sub <- full_data[organism == j]
+        data_sub <- full_data[organism_clean == j]
         # vector for storing relevant drugs and plots
         # vector for storing relevant drugs and plots
         
@@ -129,31 +136,39 @@ for(characteristic in characteristics){
           # store plot
           
           if(nrow(for_plot)>0){
-            temp<- ggplot(for_plot, aes(x= MIC, y =cumulative_sum, colour = !!sym(characteristic), 
-                                        linetype = gender)) + 
+            p <- ggplot(for_plot, aes(x= MIC, y =cumulative_sum, colour = !!sym(characteristic), 
+                                      linetype = gender)) + 
               geom_line()+
               labs(title = paste0("MIC by age group - ", i, paste0(". Tot samples = ", tot_samps)), x = "MIC value", 
                    y = paste0("cumulative proportion of samples by ", characteristic), 
                    colour = characteristic) + 
               scale_x_log10() + 
               theme_linedraw() 
+            temp <- p + theme(legend.position="none")
           }
+          legend_b <- get_legend(
+            # create some space to the left of the legend
+            p + theme(legend.box.margin = margin(0, 0, 0, 12))
+          )
+          
+          
           ### Output 
-          output_plot <- rbind(output_plot, for_plot %>% mutate(antibiotic = i, organism = j))
+          output_plot <- rbind(output_plot, for_plot %>% mutate(antibiotic = i, organism_clean = j))
           
           ## Explore index
           if(characteristic == "key_source"){
             for_plot <- for_plot %>% filter(!key_source == "") # remove this from index comparison
           }
-        suppressWarnings( index_store <- rbind(index_store, for_plot %>% group_by(MIC, gender) %>% 
-                                                 mutate(dff = diff(range(cumulative_sum))) %>% mutate(antibiotic = i, organism = j)))
-        #Warnings if no difference.
+          suppressWarnings( index_store <- rbind(index_store, for_plot %>% group_by(MIC, gender) %>% 
+                                                   mutate(dff = diff(range(cumulative_sum))) %>% mutate(antibiotic = i, organism_clean = j)))
+          #Warnings if no difference.
           
           plot_store[[i]] <- temp
         }
+        plot_store[[length(plot_store)+1]] <- legend_b
         
         tiff(paste0("plots/gender_",j , "_", characteristic, "_MICs.tiff"), width = 2500, height = 1500)
-        print(cowplot::plot_grid(plotlist =  plot_store) )
+        print(cowplot::plot_grid(plotlist =  plot_store), ncol =  1, rel_heights = c(1, .1))
         dev.off()  
       }
       write.csv(index_store, paste0("plots/gender_",characteristic, "index_store.csv"))
@@ -162,3 +177,4 @@ for(characteristic in characteristics){
     }
   }
 }
+
