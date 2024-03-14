@@ -18,68 +18,104 @@ This Extended Data file contains all cumulative MIC plots.
 
 ## By age group and gender
 
-```{r e coli, gender, echo=FALSE, fig.cap = "Plots of cumulative sum of isolates tested by MIC for *E. coli* and all testing antibiotic combinations highlight the variation in the MIC distribution by age group (colour) and sex (linetype).", fig.height=3}
+```{r e coli, gender, echo=FALSE, fig.cap = "Plots of cumulative sum of isolates tested by MIC for *E. coli* and all testing antibiotic combinations highlight the variation in the MIC distribution by age group (colour) and sex (linetype).", fig.height=5}
 grid::grid.raster( tiff::readTIFF("plots/gender_Escherichia coli_age_group_MICs.tiff") )
 ```
 
-```{r e coli, no gender, echo=FALSE, fig.cap = "Plots of cumulative sum of isolates tested by MIC for *E. coli* and all testing antibiotic combinations highlight the variation in the MIC distribution by age group (colour)", fig.height=3}
+```{r e coli, no gender, echo=FALSE, fig.cap = "Plots of cumulative sum of isolates tested by MIC for *E. coli* and all testing antibiotic combinations highlight the variation in the MIC distribution by age group (colour)", fig.height=5}
 grid::grid.raster( tiff::readTIFF("plots/Escherichia coli_age_group_MICs.tiff") )
 ```
 
-```{r stapha, gender, echo=FALSE, fig.cap = "Plots of cumulative sum of isolates tested by MIC for *S. aureus* and all testing antibiotic combinations highlight the variation in the MIC distribution by age group (colour) and sex (linetype).", fig.height=3}
+```{r stapha, gender, echo=FALSE, fig.cap = "Plots of cumulative sum of isolates tested by MIC for *S. aureus* and all testing antibiotic combinations highlight the variation in the MIC distribution by age group (colour) and sex (linetype).", fig.height=5}
 grid::grid.raster( tiff::readTIFF("plots/gender_Staphylococcus aureus_age_group_MICs.tiff") )
 ```
 
-```{r stapha, no gender, echo=FALSE, fig.cap = "Plots of cumulative sum of isolates tested by MIC for *S. aureus* and all testing antibiotic combinations highlight the variation in the MIC distribution by age group (colour)", fig.height=3}
+```{r stapha, no gender, echo=FALSE, fig.cap = "Plots of cumulative sum of isolates tested by MIC for *S. aureus* and all testing antibiotic combinations highlight the variation in the MIC distribution by age group (colour)", fig.height=5}
 grid::grid.raster( tiff::readTIFF("plots/Staphylococcus aureus_age_group_MICs.tiff") )
 ```
 
-```{r kp, gender, echo=FALSE, fig.cap = "Plots of cumulative sum of isolates tested by MIC for *K. pneumoniae* and all testing antibiotic combinations highlight the variation in the MIC distribution by age group (colour) and sex (linetype).", fig.height=3}
+```{r kp, gender, echo=FALSE, fig.cap = "Plots of cumulative sum of isolates tested by MIC for *K. pneumoniae* and all testing antibiotic combinations highlight the variation in the MIC distribution by age group (colour) and sex (linetype).", fig.height=5}
 grid::grid.raster( tiff::readTIFF("plots/gender_Klebsiella pneumoniae_age_group_MICs.tiff") )
 ```
 
-```{r kp, no gender, echo=FALSE, fig.cap = "Plots of cumulative sum of isolates tested by MIC for *K. pneumoniae* and all testing antibiotic combinations highlight the variation in the MIC distribution by age group (colour)", fig.height=3}
+```{r kp, no gender, echo=FALSE, fig.cap = "Plots of cumulative sum of isolates tested by MIC for *K. pneumoniae* and all testing antibiotic combinations highlight the variation in the MIC distribution by age group (colour)", fig.height=5}
 grid::grid.raster( tiff::readTIFF("plots/Klebsiella pneumoniae_age_group_MICs.tiff") )
 ```
 
-```{r pa, gender, echo=FALSE, fig.cap = "Plots of cumulative sum of isolates tested by MIC for *P. aeruginosa* and all testing antibiotic combinations highlight the variation in the MIC distribution by age group (colour) and sex (linetype).", fig.height=3}
-grid::grid.raster( tiff::readTIFF("plots/gender_gender_Pseudomonas aeruginosa_key_source_MICs.tiff") )
+```{r pa, gender, echo=FALSE, fig.cap = "Plots of cumulative sum of isolates tested by MIC for *P. aeruginosa* and all testing antibiotic combinations highlight the variation in the MIC distribution by age group (colour) and sex (linetype).", fig.height=5}
+grid::grid.raster( tiff::readTIFF("plots/gender_Pseudomonas aeruginosa_key_source_MICs.tiff") )
 ```
 
-```{r pa, no gender, echo=FALSE, fig.cap = "Plots of cumulative sum of isolates tested by MIC for *P. aeruginosa* and all testing antibiotic combinations highlight the variation in the MIC distribution by age group (colour)", fig.height=3}
-grid::grid.raster( tiff::readTIFF("plots/gender_Pseudomonas aeruginosa_key_source_MICs") )
+```{r pa, no gender, echo=FALSE, fig.cap = "Plots of cumulative sum of isolates tested by MIC for *P. aeruginosa* and all testing antibiotic combinations highlight the variation in the MIC distribution by age group (colour)", fig.height=5}
+grid::grid.raster( tiff::readTIFF("plots/gender_Pseudomonas aeruginosa_key_source_MICs.tiff") )
 ```
 
 ## By key source and gender
 
-```{r 2e coli, gender, echo=FALSE, fig.cap = "Plots of cumulative sum of isolates tested by MIC for *E. coli* and all testing antibiotic combinations highlight the variation in the MIC distribution infection site (colour) and sex (linetype).", fig.height=3}
+```{r 2e coli, gender, echo=FALSE, fig.cap = "Plots of cumulative sum of isolates tested by MIC for *E. coli* and all testing antibiotic combinations highlight the variation in the MIC distribution infection site (colour) and sex (linetype).", fig.height=5}
 grid::grid.raster( tiff::readTIFF("plots/gender_Escherichia coli_key_source_MICs.tiff") )
 ```
 
-```{r 2e coli, no gender, echo=FALSE, fig.cap = "Plots of cumulative sum of isolates tested by MIC for *E. coli* and all testing antibiotic combinations highlight the variation in the MIC distribution infection site (colour)", fig.height=3}
+```{r 2e coli, no gender, echo=FALSE, fig.cap = "Plots of cumulative sum of isolates tested by MIC for *E. coli* and all testing antibiotic combinations highlight the variation in the MIC distribution infection site (colour)", fig.height=5}
 grid::grid.raster( tiff::readTIFF("plots/Escherichia coli_key_source_MICs.tiff") )
 ```
 
-```{r 2stapha, gender, echo=FALSE, fig.cap = "Plots of cumulative sum of isolates tested by MIC for *S. aureus* and all testing antibiotic combinations highlight the variation in the MIC distribution infection site (colour) and sex (linetype).", fig.height=3}
+```{r 2stapha, gender, echo=FALSE, fig.cap = "Plots of cumulative sum of isolates tested by MIC for *S. aureus* and all testing antibiotic combinations highlight the variation in the MIC distribution infection site (colour) and sex (linetype).", fig.height=5}
 grid::grid.raster( tiff::readTIFF("plots/gender_Staphylococcus aureus_key_source_MICs.tiff") )
 ```
 
-```{r 2stapha, no gender, echo=FALSE, fig.cap = "Plots of cumulative sum of isolates tested by MIC for *S. aureus* and all testing antibiotic combinations highlight the variation in the MIC distribution infection site (colour)", fig.height=3}
+```{r 2stapha, no gender, echo=FALSE, fig.cap = "Plots of cumulative sum of isolates tested by MIC for *S. aureus* and all testing antibiotic combinations highlight the variation in the MIC distribution infection site (colo74ur)", fig.height=5}
 grid::grid.raster( tiff::readTIFF("plots/Staphylococcus aureus_key_source_MICs.tiff") )
 ```
 
-```{r 2kp, gender, echo=FALSE, fig.cap = "Plots of cumulative sum of isolates tested by MIC for *K. pneumoniae* and all testing antibiotic combinations highlight the variation in the MIC distribution infection site (colour) and sex (linetype).", fig.height=3}
+```{r 2kp, gender, echo=FALSE, fig.cap = "Plots of cumulative sum of isolates tested by MIC for *K. pneumoniae* and all testing antibiotic combinations highlight the variation in the MIC distribution infection site (colour) and sex (linetype).", fig.height=5}
 grid::grid.raster( tiff::readTIFF("plots/gender_Klebsiella pneumoniae_key_source_MICs.tiff") )
 ```
 
-```{r 2kp, no gender, echo=FALSE, fig.cap = "Plots of cumulative sum of isolates tested by MIC for *K. pneumoniae* and all testing antibiotic combinations highlight the variation in the MIC distribution infection site (colour)", fig.height=3}
+```{r 2kp, no gender, echo=FALSE, fig.cap = "Plots of cumulative sum of isolates tested by MIC for *K. pneumoniae* and all testing antibiotic combinations highlight the variation in the MIC distribution infection site (colour)", fig.height=5}
 grid::grid.raster( tiff::readTIFF("plots/Klebsiella pneumoniae_key_source_MICs.tiff") )
 ```
 
-```{r 2pa, gender, echo=FALSE, fig.cap = "Plots of cumulative sum of isolates tested by MIC for *P. aeruginosa* and all testing antibiotic combinations highlight the variation in the MIC distribution infection site (colour) and sex (linetype).", fig.height=3}
+```{r 2pa, gender, echo=FALSE, fig.cap = "Plots of cumulative sum of isolates tested by MIC for *P. aeruginosa* and all testing antibiotic combinations highlight the variation in the MIC distribution infection site (colour) and sex (linetype).", fig.height=5}
 grid::grid.raster( tiff::readTIFF("plots/gender_Pseudomonas aeruginosa_key_source_MICs.tiff") )
 ```
 
-```{r 2pa, no gender, echo=FALSE, fig.cap = "Plots of cumulative sum of isolates tested by MIC for *P. aeruginosa* and all testing antibiotic combinations highlight the variation in the MIC distribution infection site (colour)", fig.height=3}
-grid::grid.raster( tiff::readTIFF("plots/Pseudomonas aeruginosa_key_source_MICs") )
+```{r 2pa, no gender, echo=FALSE, fig.cap = "Plots of cumulative sum of isolates tested by MIC for *P. aeruginosa* and all testing antibiotic combinations highlight the variation in the MIC distribution infection site (colour)", fig.height=5}
+grid::grid.raster( tiff::readTIFF("plots/Pseudomonas aeruginosa_key_source_MICs.tiff") )
 ```
+
+## By who region and gender
+
+```{r 3e coli, gender, echo=FALSE, fig.cap = "Plots of cumulative sum of isolates tested by MIC for *E. coli* and all testing antibiotic combinations highlight the variation in the MIC distribution who region (colour) and sex (linetype).", fig.height=5}
+grid::grid.raster( tiff::readTIFF("plots/gender_Escherichia coli_who_region_MICs.tiff") )
+```
+
+```{r 3e coli, no gender, echo=FALSE, fig.cap = "Plots of cumulative sum of isolates tested by MIC for *E. coli* and all testing antibiotic combinations highlight the variation in the MIC distribution who region (colour)", fig.height=5}
+grid::grid.raster( tiff::readTIFF("plots/Escherichia coli_who_region_MICs.tiff") )
+```
+
+```{r 3stapha, gender, echo=FALSE, fig.cap = "Plots of cumulative sum of isolates tested by MIC for *S. aureus* and all testing antibiotic combinations highlight the variation in the MIC distribution who region (colour) and sex (linetype).", fig.height=5}
+grid::grid.raster( tiff::readTIFF("plots/gender_Staphylococcus aureus_who_region_MICs.tiff") )
+```
+
+```{r 3stapha, no gender, echo=FALSE, fig.cap = "Plots of cumulative sum of isolates tested by MIC for *S. aureus* and all testing antibiotic combinations highlight the variation in the MIC distribution who region (colour)", fig.height=5}
+grid::grid.raster( tiff::readTIFF("plots/Staphylococcus aureus_who_region_MICs.tiff") )
+```
+
+```{r 3kp, gender, echo=FALSE, fig.cap = "Plots of cumulative sum of isolates tested by MIC for *K. pneumoniae* and all testing antibiotic combinations highlight the variation in the MIC distribution who region (colour) and sex (linetype).", fig.height=5}
+grid::grid.raster( tiff::readTIFF("plots/gender_Klebsiella pneumoniae_who_region_MICs.tiff") )
+```
+
+```{r 3kp, no gender, echo=FALSE, fig.cap = "Plots of cumulative sum of isolates tested by MIC for *K. pneumoniae* and all testing antibiotic combinations highlight the variation in the MIC distribution who region (colour)", fig.height=5}
+grid::grid.raster( tiff::readTIFF("plots/Klebsiella pneumoniae_who_region_MICs.tiff") )
+```
+
+```{r 3pa, gender, echo=FALSE, fig.cap = "Plots of cumulative sum of isolates tested by MIC for *P. aeruginosa* and all testing antibiotic combinations highlight the variation in the MIC distribution who region (colour) and sex (linetype).", fig.height=5}
+grid::grid.raster( tiff::readTIFF("plots/gender_Pseudomonas aeruginosa_who_region_MICs.tiff") )
+```
+
+```{r 3pa, no gender, echo=FALSE, fig.cap = "Plots of cumulative sum of isolates tested by MIC for *P. aeruginosa* and all testing antibiotic combinations highlight the variation in the MIC distribution who region (colour)", fig.height=5}
+grid::grid.raster( tiff::readTIFF("plots/Pseudomonas aeruginosa_who_region_MICs.tiff") )
+```
+
+
